@@ -1,4 +1,4 @@
-# 海拉鲁字幕大师
+# 海拉鲁字幕大师SHIELD专用版
 
 ## 📘 [立即查看：完整功能使用教学](https://github.com/ifsherlock/MoviePilot-Plugins/blob/main/docs/SubtitleManualUpload%E5%8A%9F%E8%83%BD%E4%BD%BF%E7%94%A8%E6%95%99%E5%AD%A6.md)
 

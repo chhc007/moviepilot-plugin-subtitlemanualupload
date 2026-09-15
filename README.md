@@ -1,6 +1,6 @@
-# MoviePilot-Plugins — 海拉鲁字幕大师（定制维护版）
+# 海拉鲁字幕大师SHIELD专用版
 
-私有市场分发仓库，插件 ID `SubtitleManualUpload`（海拉鲁字幕大师）。
+私有市场分发仓库，插件 ID `SubtitleManualUpload`（海拉鲁字幕大师SHIELD专用版）。
 
 - **上游官方**：https://github.com/ifsherlock/MoviePilot-Plugins （`plugins.v2/subtitlemanualupload`）
 - **本仓库结构**：根 `package.json` + `plugins/subtitlemanualupload/`（MoviePilot 私有市场分发规范）
