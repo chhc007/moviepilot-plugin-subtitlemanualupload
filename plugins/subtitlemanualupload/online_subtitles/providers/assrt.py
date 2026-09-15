@@ -86,7 +86,14 @@ class AssrtProvider(BaseSubtitleProvider):
             language_text = " ".join([title, str(item.get("lang") or ""), str(item.get("desc") or "")])
             language_label = _guess_language_label(language_text)
             season, episode = _episode_from_text(title) or (0, 0)
-            assessment = _assess_result_match(title=title, keyword=keyword, targets=targets)
+            # 把 videoname（字幕所匹配的发布文件名，含集数/合集信息）并入身份评估的文本池，
+            # 使整季/合集字幕（如 '1+2+剧场版'）也能被集数识别
+            assessment = _assess_result_match(
+                title=title,
+                keyword=keyword,
+                targets=targets,
+                file_info={"file_name": str(item.get("videoname") or "")},
+            )
             target_media_type = next((str(target.get("media_type") or "") for target in targets or [] if target.get("media_type")), "")
             if assessment["identity_status"] == "failed" and target_media_type == "tv":
                 logger.info(

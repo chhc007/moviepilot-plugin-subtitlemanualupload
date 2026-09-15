@@ -202,7 +202,7 @@ MoviePilot V2 字幕管理插件，脱胎自 [ChineseSubFinder](https://github.c
 - 当前版本主要支持可从 MoviePilot 本地媒体库读取到的本地视频文件；CD2、WebDAV、SMB、网盘挂载等远程路径暂不保证完整可用性。
 - “信任整理历史路径”只用于减少慢路径批量探测，开启后插件会信任 MoviePilot 整理历史中的路径，不逐条访问目标文件；已有外挂字幕、内置字幕等状态可能显示不完整，写入字幕仍受挂载稳定性影响。
 - SubHD 默认地址为 `https://subhd.tv`，优先使用豆瓣 ID 自动搜索，没有 ID 时使用标题关键词搜索，站点波动时可手动跳转。
-- Zimuku 默认地址为 `https://zmk.pw`，使用标题关键词搜索候选字幕页，站点波动时可手动跳转。
+- Zimuku 默认地址为 `https://zimuku.la`，使用标题关键词搜索候选字幕页，站点波动时可手动跳转。
 - 射手网(伪) 配置 API Key 后访问 `https://api.assrt.net` 官方接口；未配置时不参与自动搜索。
 - OpenSubtitles 配置 API Key 后访问 `https://api.opensubtitles.com/api/v1` 搜索中文、英文、日文字幕；下载时由插件使用 OpenSubtitles 用户名和密码后台登录换取 token。
 - 自定义站点地址只填写根地址，例如 `https://subhd.tv` 或反代入口；插件会按各站当前路径拼接搜索页。

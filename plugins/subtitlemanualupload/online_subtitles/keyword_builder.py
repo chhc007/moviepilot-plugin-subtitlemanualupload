@@ -114,6 +114,11 @@ def build_search_keywords(media: Dict[str, Any], targets: List[Dict[str, Any]], 
                 episode = episodes[0]
                 for item in search_titles[:4]:
                     keywords.append(f"{item} S{season:02d}E{episode:02d}")
+        # 纯标题变体兜底：部分站点（如 SubHD）对带季集号的关键词返回 0 结果，
+        # 追加不带季集号的纯标题关键词，由 search_all 在带后缀关键词失败后自动替补；
+        # 无季集号信息时纯标题即首选查询词。
+        for item in search_titles[:4]:
+            keywords.append(item)
         if not keywords:
             for target in targets[:3]:
                 basename = _clean_tv_basename_keyword(target.get("basename") or target.get("filename"))
@@ -470,7 +475,7 @@ def _clean_title_alias(value: Any) -> str:
         return ""
     if len(alias) > 80:
         return ""
-    if re.search(r"https?://|www\.|。|！|？|；|……", alias, flags=re.IGNORECASE):
+    if re.search(r"https?://|www\.|。|；|……", alias, flags=re.IGNORECASE):
         return ""
     if _looks_english_title(alias):
         words = [
@@ -536,7 +541,7 @@ def _unique_keywords(values: Iterable[str]) -> List[str]:
             continue
         seen.add(key)
         result.append(normalized)
-    return result[:8]
+    return result[:10]
 
 
 def _english_search_titles(media: Dict[str, Any], targets: List[Dict[str, Any]]) -> List[str]:

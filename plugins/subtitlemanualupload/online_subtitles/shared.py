@@ -26,12 +26,12 @@ from .models import HtmlLink, OnlineSubtitleResult
 
 DEFAULT_PROVIDER_ROOTS = {
     "subhd": "https://subhd.tv",
-    "zimuku": "https://zmk.pw",
+    "zimuku": "https://zimuku.la",
     "assrt": "https://2.assrt.net",
     "opensubtitles": "https://www.opensubtitles.com",
 }
 LEGACY_PROVIDER_ROOTS = {
-    "zimuku": {"https://zimuku.org"},
+    "zimuku": {"https://zimuku.org", "https://zmk.pw"},
 }
 DEFAULT_ASSRT_API_URL = "https://api.assrt.net"
 DEFAULT_OPENSUBTITLES_API_URL = "https://api.opensubtitles.com/api/v1"

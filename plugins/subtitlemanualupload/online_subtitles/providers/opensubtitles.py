@@ -180,13 +180,15 @@ class OpenSubtitlesProvider(BaseSubtitleProvider):
         plans: List[Tuple[Dict[str, Any], str]] = []
         tmdb_id = _first_target_value(targets, "tmdb_id")
         imdb_id = _normalize_imdb_for_opensubtitles(_first_target_value(targets, "imdb_id"))
-        if tmdb_id:
-            plans.append(({**base, "tmdb_id": tmdb_id}, f"TMDB ID 查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
+        # OpenSubtitles 的 imdb_id 参数映射最可靠（实测 imdb_id=5370118 命中正确字幕），优先使用；
+        # tmdb_id 参数实测存在映射错误（tmdb_id=65844 返回错误剧集），降为最后兜底。
+        if imdb_id:
+            plans.append(({**base, "imdb_id": imdb_id}, f"IMDb ID 查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
         for keyword in keywords:
             plan = _query_plan_for_keyword(keyword, targets)
             plans.append(({**base, "query": keyword}, plan["label"]))
-        if imdb_id:
-            plans.append(({**base, "imdb_id": imdb_id}, f"IMDb ID 兜底查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
+        if tmdb_id:
+            plans.append(({**base, "tmdb_id": tmdb_id}, f"TMDB ID 兜底查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
         return plans
 
     def download(self, result: Dict[str, Any], captcha_code: str = "") -> Tuple[str, bytes]:

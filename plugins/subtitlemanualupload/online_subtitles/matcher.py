@@ -25,6 +25,12 @@ def _episode_from_text(value: str) -> Optional[Tuple[int, int]]:
         re.compile(r"(?i)\b(?P<season>\d{1,2})x(?P<episode>\d{1,3})\b"),
         re.compile(r"第\s*(?P<season>\d{1,2})\s*季.*?第\s*(?P<episode>\d{1,3})\s*[集话話]"),
         re.compile(r"第\s*(?P<episode>\d{1,3})\s*[集话話]"),
+        # 点号集数格式：Konosuba.01.BDRip / Title.EP01.1080p / Title.01.mkv，
+        # 数字后必须紧跟发布标记/容器后缀，避免误判年份（2021.1080p）或分辨率（1080p）
+        re.compile(r"(?i)(?<!\d)(?:ep)?(?P<episode>\d{1,3})\.(?:bdrip|web|web\-?dl|hdtv|bluray|blu\-ray|1080p|2160p|720p|mkv|mp4|avi)(?![a-z0-9])"),
+        # 独立数字集数：Title 01 / Title.EP01；
+        # 排除年份（2021）、分辨率（1080p、720p）、S01/E01/第2季等既有语义的误判
+        re.compile(r"(?i)(?<![a-z0-9第季])(?:ep)?(?P<episode>\d{1,3})(?![a-z0-9])"),
     ]
     for pattern in patterns:
         match = pattern.search(text)
