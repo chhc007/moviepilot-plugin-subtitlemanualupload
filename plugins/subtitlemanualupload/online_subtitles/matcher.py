@@ -189,12 +189,12 @@ def _opensubtitles_metadata_conflicts(attrs: Dict[str, Any], targets: List[Dict[
         if isinstance(value, dict):
             for key, item in value.items():
                 key_lower = str(key or "").lower()
-                if key_lower in {"tmdb_id", "feature_tmdb_id"}:
+                if key_lower in {"tmdb_id", "feature_tmdb_id", "parent_tmdb_id", "tmdb_parent_id"}:
                     text = str(item or "").strip()
                     if text and text not in {"0", "None", "null"}:
                         result_tmdb_ids.add(text)
                     continue
-                if key_lower in {"imdb_id", "feature_imdb_id"}:
+                if key_lower in {"imdb_id", "feature_imdb_id", "parent_imdb_id", "imdb_parent_id"}:
                     imdb = _normalize_imdb_tt(item)
                     if imdb:
                         result_imdb_ids.add(imdb)

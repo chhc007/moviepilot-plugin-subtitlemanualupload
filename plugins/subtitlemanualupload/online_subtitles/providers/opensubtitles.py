@@ -182,14 +182,33 @@ class OpenSubtitlesProvider(BaseSubtitleProvider):
         imdb_id = _normalize_imdb_for_opensubtitles(_first_target_value(targets, "imdb_id"))
         # OpenSubtitles 的 imdb_id 参数映射最可靠（实测 imdb_id=5370118 命中正确字幕），优先使用；
         # tmdb_id 参数实测存在映射错误（tmdb_id=65844 返回错误剧集），降为最后兜底。
+        # 关键：TV 单集场景必须带 season_number/episode_number 参数（实测不带时 API 只返回整剧条目
+        # 下挂载的字幕，通常只有 S1，导致 S3E10 等集数搜不到精准字幕；带参数后 API 会定位到单集 feature）。
+        season, episode = self._single_target_season_episode(targets)
+        season_params = {}
+        if season:
+            season_params["season_number"] = str(season)
+        if episode:
+            season_params["episode_number"] = str(episode)
         if imdb_id:
-            plans.append(({**base, "imdb_id": imdb_id}, f"IMDb ID 查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
+            plan = {**base, "imdb_id": imdb_id, **season_params}
+            plans.append((plan, f"IMDb ID 查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
         for keyword in keywords:
             plan = _query_plan_for_keyword(keyword, targets)
             plans.append(({**base, "query": keyword}, plan["label"]))
         if tmdb_id:
-            plans.append(({**base, "tmdb_id": tmdb_id}, f"TMDB ID 兜底查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
+            plan = {**base, "tmdb_id": tmdb_id, **season_params}
+            plans.append((plan, f"TMDB ID 兜底查询 · 字幕语言 {OPENSUBTITLES_SEARCH_LANGUAGES}"))
         return plans
+
+    @staticmethod
+    def _single_target_season_episode(targets: List[Dict[str, Any]]) -> Tuple[int, int]:
+        """从 targets 中提取单一季/集号；有多种取值时返回 (0,0) 表示不限定。"""
+        seasons = {int(target.get("season") or 0) for target in targets or [] if int(target.get("season") or 0)}
+        episodes = {int(target.get("episode") or 0) for target in targets or [] if int(target.get("episode") or 0)}
+        season = next(iter(seasons)) if len(seasons) == 1 else 0
+        episode = next(iter(episodes)) if len(episodes) == 1 else 0
+        return season, episode
 
     def download(self, result: Dict[str, Any], captcha_code: str = "") -> Tuple[str, bytes]:
         result_id = str(result.get("result_id") or "").strip()
