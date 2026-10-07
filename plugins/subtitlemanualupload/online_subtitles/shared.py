@@ -29,6 +29,7 @@ DEFAULT_PROVIDER_ROOTS = {
     "zimuku": "https://zimuku.la",
     "assrt": "https://2.assrt.net",
     "opensubtitles": "https://www.opensubtitles.com",
+    "thunder": "https://api-shoulei-ssl.xunlei.com/oracle/subtitle",
 }
 LEGACY_PROVIDER_ROOTS = {
     "zimuku": {"https://zimuku.org", "https://zmk.pw"},

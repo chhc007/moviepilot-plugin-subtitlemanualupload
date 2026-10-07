@@ -20,9 +20,9 @@ from ..matching.subtitle_language import (
 
 
 DEFAULT_RAR_TOOL_PATH = "/usr/bin/unar"
-DEFAULT_ONLINE_PROVIDER_IDS = ["subhd", "zimuku"]
-AVAILABLE_ONLINE_PROVIDER_IDS = ["subhd", "zimuku", "assrt", "opensubtitles"]
-MANUAL_ONLINE_PROVIDER_IDS = ["subhd", "zimuku", "assrt", "opensubtitles"]
+DEFAULT_ONLINE_PROVIDER_IDS = ["subhd", "thunder"]
+AVAILABLE_ONLINE_PROVIDER_IDS = ["subhd", "thunder", "assrt", "opensubtitles"]
+MANUAL_ONLINE_PROVIDER_IDS = ["subhd", "thunder", "assrt", "opensubtitles"]
 
 RAR_DEPENDENCY_MODES = {"none", "container_install", "mapped_binary"}
 AUTO_TRANSFER_SUBTITLE_STRATEGIES = {"online_then_ai_source", "online_source_only", "ai_source_only"}
@@ -60,7 +60,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "online_engine": DEFAULT_ENGINE,
     "online_use_proxy": False,
     "subhd_url": DEFAULT_PROVIDER_ROOTS["subhd"],
-    "zimuku_url": DEFAULT_PROVIDER_ROOTS["zimuku"],
+    "thunder_url": DEFAULT_PROVIDER_ROOTS["thunder"],
     "assrt_url": DEFAULT_PROVIDER_ROOTS["assrt"],
     "assrt_api_key": "",
     "assrt_api_url": DEFAULT_ASSRT_API_URL,
@@ -175,7 +175,7 @@ def normalize_online_site_urls(config: Dict[str, Any]) -> Dict[str, str]:
     raw = config.get("online_site_urls") if isinstance(config.get("online_site_urls"), dict) else {}
     roots = {
         "subhd": raw.get("subhd") or config.get("subhd_url"),
-        "zimuku": raw.get("zimuku") or config.get("zimuku_url"),
+        "thunder": raw.get("thunder") or config.get("thunder_url"),
         "assrt": raw.get("assrt") or config.get("assrt_url"),
         "opensubtitles": raw.get("opensubtitles") or config.get("opensubtitles_url"),
     }
@@ -502,7 +502,7 @@ def build_config_form(
                             "chips": True,
                             "items": [
                                 {"title": "SubHD 中文字幕", "value": "subhd"},
-                                {"title": "Zimuku 中文字幕", "value": "zimuku"},
+                                {"title": "迅雷影音中文字幕（无需 API Key）", "value": "thunder"},
                                 {"title": "射手网(伪，需 API Key)", "value": "assrt"},
                                 {"title": "OpenSubtitles 多语言字幕", "value": "opensubtitles"},
                             ],
@@ -528,9 +528,9 @@ def build_config_form(
                     _col(
                         "VTextField",
                         {
-                            "model": "zimuku_url",
-                            "label": "Zimuku 站点地址",
-                            "placeholder": DEFAULT_PROVIDER_ROOTS["zimuku"],
+                            "model": "thunder_url",
+                            "label": "迅雷影音接口地址",
+                            "placeholder": DEFAULT_PROVIDER_ROOTS["thunder"],
                         },
                         md=6,
                     ),
@@ -610,7 +610,7 @@ def build_config_form(
                         md=6,
                     ),
                 ),
-                _alert("从 MoviePilot 本地整理记录中搜索已有视频资源；在线字幕搜索支持 SubHD、Zimuku、射手网(伪) 和 OpenSubtitles。"),
+                _alert("从 MoviePilot 本地整理记录中搜索已有视频资源；在线字幕搜索支持 SubHD、迅雷影音、射手网(伪) 和 OpenSubtitles。"),
                 _row(
                     _col(
                         "VSelect",

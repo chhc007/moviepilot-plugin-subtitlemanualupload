@@ -163,7 +163,7 @@ class SubtitleManualUpload(_PluginBase):
     plugin_name = "海拉鲁字幕大师SHIELD专用版"
     plugin_desc = "脱胎自 ChineseSubFinder，支持字幕搜索、上传、匹配、改名与智能调轴。"
     plugin_icon = "https://raw.githubusercontent.com/ifsherlock/MoviePilot-Plugins/main/icons/hyrule-subtitle-master.png"
-    plugin_version = "0.1.92"
+    plugin_version = "0.1.93"
     plugin_author = "ifsherlock"
     author_url = "https://github.com/ifsherlock"
     plugin_config_prefix = "subtitlemanualupload_"
@@ -177,7 +177,7 @@ class SubtitleManualUpload(_PluginBase):
     _default_online_provider_ids = list(DEFAULT_ONLINE_PROVIDER_IDS)
     _available_online_provider_ids = list(AVAILABLE_ONLINE_PROVIDER_IDS)
     _manual_online_provider_ids = list(MANUAL_ONLINE_PROVIDER_IDS)
-    _online_provider_ids = ["subhd", "zimuku"]
+    _online_provider_ids = ["subhd", "thunder"]
     _online_engine = DEFAULT_ENGINE
     _online_use_proxy = False
     _online_site_urls = dict(DEFAULT_PROVIDER_ROOTS)

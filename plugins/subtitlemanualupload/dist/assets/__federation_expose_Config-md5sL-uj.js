@@ -1,5 +1,5 @@
 import { importShared } from './__federation_fn_import-JrT3xvdd.js';
-import { _ as _export_sfc } from './_plugin-vue_export-helper-BZVPKICR.js';
+import { _ as _export_sfc } from './_plugin-vue_export-helper-CAfCMqyq.js';
 
 const {createElementVNode:_createElementVNode,resolveComponent:_resolveComponent,createVNode:_createVNode,createTextVNode:_createTextVNode,withCtx:_withCtx,openBlock:_openBlock,createBlock:_createBlock,createCommentVNode:_createCommentVNode,createElementBlock:_createElementBlock} = await importShared('vue');
 
@@ -34,7 +34,7 @@ const configError = ref('');
 const localConfig = ref({
   enabled: false,
   show_sidebar_nav: true,
-  online_providers: ['subhd', 'zimuku'],
+  online_providers: ['subhd', 'thunder'],
   online_use_proxy: false,
   traditional_to_simplified: false,
   auto_search_on_transfer: false,
@@ -53,7 +53,7 @@ const localConfig = ref({
   timeline_vad_mode: 'webrtc',
   timeline_allow_risky_offset: false,
   subhd_url: 'https://subhd.tv',
-  zimuku_url: 'https://zmk.pw',
+  thunder_url: 'https://api-shoulei-ssl.xunlei.com/oracle/subtitle',
   assrt_url: 'https://2.assrt.net',
   assrt_api_key: '',
   assrt_api_url: 'https://api.assrt.net',
@@ -69,7 +69,7 @@ const localConfig = ref({
 
 const onlineProviderItems = [
   { title: 'SubHD 中文字幕', value: 'subhd' },
-  { title: 'Zimuku 中文字幕', value: 'zimuku' },
+  { title: '迅雷影音中文字幕（无需 API Key）', value: 'thunder' },
   { title: '射手网(伪，需 API Key)', value: 'assrt' },
   { title: 'OpenSubtitles 多语言字幕', value: 'opensubtitles' },
 ];
@@ -117,9 +117,9 @@ const timelineVadItems = [
 ];
 
 function normalizeProviders(value) {
-  const allowed = ['subhd', 'zimuku', 'assrt', 'opensubtitles'];
+  const allowed = ['subhd', 'thunder', 'assrt', 'opensubtitles'];
   const providers = Array.isArray(value) ? value.filter(item => allowed.includes(item)) : [];
-  return providers.length ? Array.from(new Set(providers)) : ['subhd', 'zimuku']
+  return providers.length ? Array.from(new Set(providers)) : ['subhd', 'thunder']
 }
 
 function normalizeRootUrl(value, fallback) {
@@ -127,9 +127,8 @@ function normalizeRootUrl(value, fallback) {
   return /^https?:\/\//i.test(text) ? text : fallback
 }
 
-function normalizeZimukuRootUrl(value) {
-  const normalized = normalizeRootUrl(value, 'https://zmk.pw');
-  return normalized === 'https://zimuku.org' ? 'https://zmk.pw' : normalized
+function normalizeThunderRootUrl(value) {
+  return normalizeRootUrl(value, 'https://api-shoulei-ssl.xunlei.com/oracle/subtitle')
 }
 
 function normalizePositiveNumber(value, fallback) {
@@ -213,7 +212,7 @@ function normalizeConfig(input) {
     timeline_vad_mode: timelineVadItems.some(item => item.value === input?.timeline_vad_mode) ? input.timeline_vad_mode : 'webrtc',
     timeline_allow_risky_offset: Boolean(input?.timeline_allow_risky_offset),
     subhd_url: normalizeRootUrl(input?.subhd_url, 'https://subhd.tv'),
-    zimuku_url: normalizeZimukuRootUrl(input?.zimuku_url),
+    thunder_url: normalizeThunderRootUrl(input?.thunder_url),
     assrt_url: normalizeRootUrl(input?.assrt_url, 'https://2.assrt.net'),
     assrt_api_key: assrtApiKey,
     assrt_api_url: normalizeRootUrl(input?.assrt_api_url, 'https://api.assrt.net'),
@@ -456,7 +455,7 @@ return (_ctx, _cache) => {
               _cache[37] || (_cache[37] = _createElementVNode("div", { class: "config-section" }, [
                 _createElementVNode("div", null, [
                   _createElementVNode("div", { class: "config-section-title" }, "在线字幕搜索"),
-                  _createElementVNode("p", null, "自动搜索支持 SubHD、Zimuku、射手网(伪) 和 OpenSubtitles；站点波动时仍可使用右侧手动搜索跳转。")
+                  _createElementVNode("p", null, "自动搜索支持 SubHD、迅雷影音、射手网(伪) 和 OpenSubtitles；站点波动时仍可使用右侧手动搜索跳转。")
                 ])
               ], -1)),
               _createElementVNode("div", _hoisted_4, [
@@ -493,10 +492,10 @@ return (_ctx, _cache) => {
                   "hide-details": ""
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
-                  modelValue: localConfig.value.zimuku_url,
-                  "onUpdate:modelValue": _cache[19] || (_cache[19] = $event => ((localConfig.value.zimuku_url) = $event)),
-                  label: "Zimuku 站点地址",
-                  placeholder: "https://zmk.pw",
+                  modelValue: localConfig.value.thunder_url,
+                  "onUpdate:modelValue": _cache[19] || (_cache[19] = $event => ((localConfig.value.thunder_url) = $event)),
+                  label: "迅雷影音接口地址",
+                  placeholder: "https://api-shoulei-ssl.xunlei.com/oracle/subtitle",
                   variant: "outlined",
                   density: "comfortable",
                   "hide-details": ""
@@ -692,6 +691,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-52b076cb"]]);
+const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-cbc090f9"]]);
 
 export { Config as default };

@@ -134,7 +134,7 @@ def build_save_config_payload(owner: Any) -> dict[str, Any]:
         "online_proxy_migrated": True,
         "assrt_provider_migrated": True,
         "subhd_url": owner._online_site_urls["subhd"],
-        "zimuku_url": owner._online_site_urls["zimuku"],
+        "thunder_url": owner._online_site_urls["thunder"],
         "assrt_url": owner._online_site_urls["assrt"],
         "assrt_api_key": owner._assrt_api_key,
         "assrt_api_url": owner._assrt_api_url,

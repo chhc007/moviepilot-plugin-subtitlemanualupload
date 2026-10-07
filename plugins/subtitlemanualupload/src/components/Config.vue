@@ -16,7 +16,7 @@ const manualStrmPathPlaceholder = `/vol2/1000/raid/2/links2
 const localConfig = ref({
   enabled: false,
   show_sidebar_nav: true,
-  online_providers: ['subhd', 'zimuku'],
+  online_providers: ['subhd', 'thunder'],
   online_use_proxy: false,
   traditional_to_simplified: false,
   auto_search_on_transfer: false,
@@ -35,7 +35,7 @@ const localConfig = ref({
   timeline_vad_mode: 'webrtc',
   timeline_allow_risky_offset: false,
   subhd_url: 'https://subhd.tv',
-  zimuku_url: 'https://zmk.pw',
+  thunder_url: 'https://api-shoulei-ssl.xunlei.com/oracle/subtitle',
   assrt_url: 'https://2.assrt.net',
   assrt_api_key: '',
   assrt_api_url: 'https://api.assrt.net',
@@ -51,7 +51,7 @@ const localConfig = ref({
 
 const onlineProviderItems = [
   { title: 'SubHD 中文字幕', value: 'subhd' },
-  { title: 'Zimuku 中文字幕', value: 'zimuku' },
+  { title: '迅雷影音中文字幕（无需 API Key）', value: 'thunder' },
   { title: '射手网(伪，需 API Key)', value: 'assrt' },
   { title: 'OpenSubtitles 多语言字幕', value: 'opensubtitles' },
 ]
@@ -99,9 +99,9 @@ const timelineVadItems = [
 ]
 
 function normalizeProviders(value) {
-  const allowed = ['subhd', 'zimuku', 'assrt', 'opensubtitles']
+  const allowed = ['subhd', 'thunder', 'assrt', 'opensubtitles']
   const providers = Array.isArray(value) ? value.filter(item => allowed.includes(item)) : []
-  return providers.length ? Array.from(new Set(providers)) : ['subhd', 'zimuku']
+  return providers.length ? Array.from(new Set(providers)) : ['subhd', 'thunder']
 }
 
 function normalizeRootUrl(value, fallback) {
@@ -109,9 +109,8 @@ function normalizeRootUrl(value, fallback) {
   return /^https?:\/\//i.test(text) ? text : fallback
 }
 
-function normalizeZimukuRootUrl(value) {
-  const normalized = normalizeRootUrl(value, 'https://zmk.pw')
-  return normalized === 'https://zimuku.org' ? 'https://zmk.pw' : normalized
+function normalizeThunderRootUrl(value) {
+  return normalizeRootUrl(value, 'https://api-shoulei-ssl.xunlei.com/oracle/subtitle')
 }
 
 function normalizePositiveNumber(value, fallback) {
@@ -195,7 +194,7 @@ function normalizeConfig(input) {
     timeline_vad_mode: timelineVadItems.some(item => item.value === input?.timeline_vad_mode) ? input.timeline_vad_mode : 'webrtc',
     timeline_allow_risky_offset: Boolean(input?.timeline_allow_risky_offset),
     subhd_url: normalizeRootUrl(input?.subhd_url, 'https://subhd.tv'),
-    zimuku_url: normalizeZimukuRootUrl(input?.zimuku_url),
+    thunder_url: normalizeThunderRootUrl(input?.thunder_url),
     assrt_url: normalizeRootUrl(input?.assrt_url, 'https://2.assrt.net'),
     assrt_api_key: assrtApiKey,
     assrt_api_url: normalizeRootUrl(input?.assrt_api_url, 'https://api.assrt.net'),
@@ -385,7 +384,7 @@ onMounted(() => {
           <div class="config-section">
             <div>
               <div class="config-section-title">在线字幕搜索</div>
-              <p>自动搜索支持 SubHD、Zimuku、射手网(伪) 和 OpenSubtitles；站点波动时仍可使用右侧手动搜索跳转。</p>
+              <p>自动搜索支持 SubHD、迅雷影音、射手网(伪) 和 OpenSubtitles；站点波动时仍可使用右侧手动搜索跳转。</p>
             </div>
           </div>
 
@@ -420,9 +419,9 @@ onMounted(() => {
               hide-details
             />
             <VTextField
-              v-model="localConfig.zimuku_url"
-              label="Zimuku 站点地址"
-              placeholder="https://zmk.pw"
+              v-model="localConfig.thunder_url"
+              label="迅雷影音接口地址"
+              placeholder="https://api-shoulei-ssl.xunlei.com/oracle/subtitle"
               variant="outlined"
               density="comfortable"
               hide-details

@@ -4,7 +4,12 @@ from .clients import *  # noqa: F401,F403
 from .language import *  # noqa: F401,F403
 from .matcher import *  # noqa: F401,F403
 from .models import *  # noqa: F401,F403
-from .providers import AssrtProvider, OpenSubtitlesProvider, SubHDProvider, ZimukuProvider
+from .providers import (
+    AssrtProvider,
+    OpenSubtitlesProvider,
+    SubHDProvider,
+    ThunderProvider,
+)
 from .providers.base import BaseSubtitleProvider
 from .shared import *  # noqa: F401,F403
 
@@ -30,7 +35,6 @@ class OnlineSubtitleSearchService:
         roots = normalize_provider_roots(provider_roots)
         self.providers: Dict[str, BaseSubtitleProvider] = {
             "subhd": SubHDProvider(self.fetcher, root_url=roots["subhd"]),
-            "zimuku": ZimukuProvider(self.fetcher, root_url=roots["zimuku"]),
             "assrt": AssrtProvider(
                 self.fetcher,
                 root_url=roots["assrt"],
@@ -45,12 +49,13 @@ class OnlineSubtitleSearchService:
                 username=opensubtitles_username,
                 password=opensubtitles_password,
             ),
+            "thunder": ThunderProvider(self.fetcher, root_url=roots["thunder"]),
         }
         self.manual_providers: Dict[str, BaseSubtitleProvider] = {
             "subhd": self.providers["subhd"],
-            "zimuku": self.providers["zimuku"],
             "assrt": self.providers["assrt"],
             "opensubtitles": self.providers["opensubtitles"],
+            "thunder": self.providers["thunder"],
         }
 
     def status(self) -> Dict[str, Any]:

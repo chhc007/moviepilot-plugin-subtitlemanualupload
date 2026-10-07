@@ -1,6 +1,6 @@
 export const onlineProviderItems = [
   { title: 'SubHD', value: 'subhd' },
-  { title: 'Zimuku', value: 'zimuku' },
+  { title: '迅雷影音', value: 'thunder' },
   { title: '射手网(伪)', value: 'assrt' },
   { title: 'OpenSubtitles', value: 'opensubtitles' },
 ]
@@ -15,9 +15,9 @@ export function providerName(providerId) {
 }
 
 export function providerPriority(providerId) {
+  if (providerId === 'thunder') return 40
   if (providerId === 'subhd') return 35
   if (providerId === 'assrt') return 30
-  if (providerId === 'zimuku') return 25
   if (providerId === 'opensubtitles') return 20
   return 0
 }

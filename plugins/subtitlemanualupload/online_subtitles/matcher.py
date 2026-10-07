@@ -60,6 +60,8 @@ def _has_relevance_signal(title: str, keyword: str, targets: List[Dict[str, Any]
 
 
 def _provider_priority(item: Any) -> int:
+    if item.provider == "thunder":
+        return 40
     if item.provider == "subhd":
         return 35
     if item.provider == "assrt":

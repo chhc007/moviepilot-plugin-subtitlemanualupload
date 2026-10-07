@@ -8,6 +8,13 @@ MoviePilot V2 字幕管理插件，脱胎自 [ChineseSubFinder](https://github.c
 
 详细配置、额外 STRM 实时监控和字幕写入说明见：[功能使用教学](../../docs/SubtitleManualUpload功能使用教学.md)。
 
+## v0.1.93 更新
+
+- **新增「迅雷影音」在线字幕源**（无需 API Key）：
+  - 复刻迅雷影音客户端的字幕接口与 **CID 精确匹配**——有本地视频文件时按 SHA1 采样哈希算出 CID，与结果中 CID 完全一致的条目优先返回并加权，避免同名不同版本的字幕错配。
+  - 下载后自动把 GBK/Big5 编码字幕转为 UTF-8，避免播放器乱码。
+- **移除已失效的 Zimuku 源**：字幕库全系域名（`zimuku.la` / `.org` / `.net` / `.pw` 等）均已变为域名停放页，无法使用。已从可选源、默认源、自动搜索白名单和界面中一并摘除（provider 代码保留，便于上游站点恢复时重新接线）。
+
 ## v0.1.91 更新
 
 - 插件设置页标题栏新增“使用教程”快捷链接，可直接打开仓库详细文档。
@@ -202,7 +209,7 @@ MoviePilot V2 字幕管理插件，脱胎自 [ChineseSubFinder](https://github.c
 - 当前版本主要支持可从 MoviePilot 本地媒体库读取到的本地视频文件；CD2、WebDAV、SMB、网盘挂载等远程路径暂不保证完整可用性。
 - “信任整理历史路径”只用于减少慢路径批量探测，开启后插件会信任 MoviePilot 整理历史中的路径，不逐条访问目标文件；已有外挂字幕、内置字幕等状态可能显示不完整，写入字幕仍受挂载稳定性影响。
 - SubHD 默认地址为 `https://subhd.tv`，优先使用豆瓣 ID 自动搜索，没有 ID 时使用标题关键词搜索，站点波动时可手动跳转。
-- Zimuku 默认地址为 `https://zimuku.la`，使用标题关键词搜索候选字幕页，站点波动时可手动跳转。
+- 迅雷影音默认接口为 `https://api-shoulei-ssl.xunlei.com/oracle/subtitle`，无需 API Key；有本地视频文件时按 CID（SHA1 采样哈希）精确匹配，下载后自动转 UTF-8。
 - 射手网(伪) 配置 API Key 后访问 `https://api.assrt.net` 官方接口；未配置时不参与自动搜索。
 - OpenSubtitles 配置 API Key 后访问 `https://api.opensubtitles.com/api/v1` 搜索中文、英文、日文字幕；下载时由插件使用 OpenSubtitles 用户名和密码后台登录换取 token。
 - 自定义站点地址只填写根地址，例如 `https://subhd.tv` 或反代入口；插件会按各站当前路径拼接搜索页。

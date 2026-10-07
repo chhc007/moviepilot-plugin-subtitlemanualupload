@@ -1,5 +1,5 @@
 import { importShared } from './__federation_fn_import-JrT3xvdd.js';
-import { _ as _export_sfc } from './_plugin-vue_export-helper-BZVPKICR.js';
+import { _ as _export_sfc } from './_plugin-vue_export-helper-CAfCMqyq.js';
 
 function unwrapResponse(response) {
   if (response && Object.prototype.hasOwnProperty.call(response, 'data') && response.success !== undefined) {
@@ -1464,7 +1464,7 @@ function useMediaSearch({
 
 const onlineProviderItems = [
   { title: 'SubHD', value: 'subhd' },
-  { title: 'Zimuku', value: 'zimuku' },
+  { title: '迅雷影音', value: 'thunder' },
   { title: '射手网(伪)', value: 'assrt' },
   { title: 'OpenSubtitles', value: 'opensubtitles' },
 ];
@@ -1479,9 +1479,9 @@ function providerName(providerId) {
 }
 
 function providerPriority(providerId) {
+  if (providerId === 'thunder') return 40
   if (providerId === 'subhd') return 35
   if (providerId === 'assrt') return 30
-  if (providerId === 'zimuku') return 25
   if (providerId === 'opensubtitles') return 20
   return 0
 }
@@ -1616,7 +1616,7 @@ function useOnlineSubtitles({
   const onlineKeyword = ref$b('');
   const onlineTargets = ref$b([]);
   const onlineStatus = ref$b({ providers: [], capabilities: {} });
-  const onlineSelectedProviders = ref$b(['subhd', 'zimuku']);
+  const onlineSelectedProviders = ref$b(['subhd', 'thunder']);
   const onlineResults = ref$b([]);
   const onlineLanguageFilter = ref$b('all');
   const onlineProviderFilter = ref$b('all');
@@ -3264,7 +3264,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const AiTaskDialog = /*#__PURE__*/_export_sfc(_sfc_main$d, [['__scopeId',"data-v-1794d529"]]);
+const AiTaskDialog = /*#__PURE__*/_export_sfc(_sfc_main$d, [['__scopeId',"data-v-ce56eb3a"]]);
 
 const {createElementVNode:_createElementVNode$c,toDisplayString:_toDisplayString$a,createTextVNode:_createTextVNode$9,resolveComponent:_resolveComponent$c,withCtx:_withCtx$9,openBlock:_openBlock$c,createBlock:_createBlock$c,createCommentVNode:_createCommentVNode$c,createVNode:_createVNode$b,renderList:_renderList$8,Fragment:_Fragment$a,createElementBlock:_createElementBlock$c,mergeProps:_mergeProps$4,normalizeClass:_normalizeClass$9} = await importShared('vue');
 
@@ -3458,7 +3458,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const AutoTransferQueueDialog = /*#__PURE__*/_export_sfc(_sfc_main$c, [['__scopeId',"data-v-919aa78a"]]);
+const AutoTransferQueueDialog = /*#__PURE__*/_export_sfc(_sfc_main$c, [['__scopeId',"data-v-7ce45537"]]);
 
 const {renderList:_renderList$7,Fragment:_Fragment$9,openBlock:_openBlock$b,createElementBlock:_createElementBlock$b,createCommentVNode:_createCommentVNode$b,toDisplayString:_toDisplayString$9,createElementVNode:_createElementVNode$b,resolveComponent:_resolveComponent$b,createVNode:_createVNode$a,createTextVNode:_createTextVNode$8,withCtx:_withCtx$8,createBlock:_createBlock$b} = await importShared('vue');
 
@@ -3571,7 +3571,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const MediaGrid = /*#__PURE__*/_export_sfc(_sfc_main$b, [['__scopeId',"data-v-e622bd7b"]]);
+const MediaGrid = /*#__PURE__*/_export_sfc(_sfc_main$b, [['__scopeId',"data-v-1606aa16"]]);
 
 const {renderList:_renderList$6,Fragment:_Fragment$8,openBlock:_openBlock$a,createElementBlock:_createElementBlock$a,createCommentVNode:_createCommentVNode$a,toDisplayString:_toDisplayString$8,createElementVNode:_createElementVNode$a,resolveComponent:_resolveComponent$a,createVNode:_createVNode$9,createTextVNode:_createTextVNode$7,withModifiers:_withModifiers$2,withCtx:_withCtx$7,normalizeClass:_normalizeClass$8,createBlock:_createBlock$a} = await importShared('vue');
 
@@ -4007,7 +4007,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const MatchHistoryPanel = /*#__PURE__*/_export_sfc(_sfc_main$a, [['__scopeId',"data-v-7c0ba8cd"]]);
+const MatchHistoryPanel = /*#__PURE__*/_export_sfc(_sfc_main$a, [['__scopeId',"data-v-0be17e28"]]);
 
 const {toDisplayString:_toDisplayString$7,createElementVNode:_createElementVNode$9,openBlock:_openBlock$9,createElementBlock:_createElementBlock$9,createCommentVNode:_createCommentVNode$9,createTextVNode:_createTextVNode$6,resolveComponent:_resolveComponent$9,withCtx:_withCtx$6,createBlock:_createBlock$9,createVNode:_createVNode$8,withKeys:_withKeys$2} = await importShared('vue');
 
@@ -4156,7 +4156,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const MediaSearchPanel = /*#__PURE__*/_export_sfc(_sfc_main$9, [['__scopeId',"data-v-929e8c55"]]);
+const MediaSearchPanel = /*#__PURE__*/_export_sfc(_sfc_main$9, [['__scopeId',"data-v-af087426"]]);
 
 const {resolveComponent:_resolveComponent$8,openBlock:_openBlock$8,createBlock:_createBlock$8,createCommentVNode:_createCommentVNode$8,toDisplayString:_toDisplayString$6,createElementVNode:_createElementVNode$8,createTextVNode:_createTextVNode$5,withCtx:_withCtx$5,createVNode:_createVNode$7,normalizeClass:_normalizeClass$7,withKeys:_withKeys$1,renderList:_renderList$5,Fragment:_Fragment$7,createElementBlock:_createElementBlock$8} = await importShared('vue');
 
@@ -4682,7 +4682,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const OnlineSubtitleDialog = /*#__PURE__*/_export_sfc(_sfc_main$8, [['__scopeId',"data-v-962be9c1"]]);
+const OnlineSubtitleDialog = /*#__PURE__*/_export_sfc(_sfc_main$8, [['__scopeId',"data-v-da7843b5"]]);
 
 const {resolveComponent:_resolveComponent$7,openBlock:_openBlock$7,createBlock:_createBlock$7,createCommentVNode:_createCommentVNode$7,createElementVNode:_createElementVNode$7,toDisplayString:_toDisplayString$5,normalizeClass:_normalizeClass$6,createElementBlock:_createElementBlock$7} = await importShared('vue');
 
@@ -4756,7 +4756,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const AiStatusStrip = /*#__PURE__*/_export_sfc(_sfc_main$7, [['__scopeId',"data-v-0bff1e57"]]);
+const AiStatusStrip = /*#__PURE__*/_export_sfc(_sfc_main$7, [['__scopeId',"data-v-f2a6d5c4"]]);
 
 const {resolveComponent:_resolveComponent$6,createVNode:_createVNode$6,createElementVNode:_createElementVNode$6,openBlock:_openBlock$6,createElementBlock:_createElementBlock$6,createCommentVNode:_createCommentVNode$6,toDisplayString:_toDisplayString$4,createTextVNode:_createTextVNode$4,withCtx:_withCtx$4,renderList:_renderList$4,Fragment:_Fragment$6,normalizeClass:_normalizeClass$5,createBlock:_createBlock$6,mergeProps:_mergeProps$3,withModifiers:_withModifiers$1} = await importShared('vue');
 
@@ -5330,7 +5330,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const TargetDetailPanel = /*#__PURE__*/_export_sfc(_sfc_main$6, [['__scopeId',"data-v-9af698aa"]]);
+const TargetDetailPanel = /*#__PURE__*/_export_sfc(_sfc_main$6, [['__scopeId',"data-v-7a88134c"]]);
 
 const {toDisplayString:_toDisplayString$3,createElementVNode:_createElementVNode$5,resolveComponent:_resolveComponent$5,createVNode:_createVNode$5,withCtx:_withCtx$3,createTextVNode:_createTextVNode$3,openBlock:_openBlock$5,createBlock:_createBlock$5,createCommentVNode:_createCommentVNode$5,mergeProps:_mergeProps$2,normalizeClass:_normalizeClass$4,createElementBlock:_createElementBlock$5,renderList:_renderList$3,Fragment:_Fragment$5,withKeys:_withKeys} = await importShared('vue');
 
@@ -5688,7 +5688,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const UploadDialog = /*#__PURE__*/_export_sfc(_sfc_main$5, [['__scopeId',"data-v-0a743c1b"]]);
+const UploadDialog = /*#__PURE__*/_export_sfc(_sfc_main$5, [['__scopeId',"data-v-746f765a"]]);
 
 const {resolveComponent:_resolveComponent$4,createVNode:_createVNode$4,toDisplayString:_toDisplayString$2,createElementVNode:_createElementVNode$4,openBlock:_openBlock$4,createElementBlock:_createElementBlock$4,createCommentVNode:_createCommentVNode$4,createTextVNode:_createTextVNode$2,withCtx:_withCtx$2,mergeProps:_mergeProps$1,createBlock:_createBlock$4,renderList:_renderList$2,Fragment:_Fragment$4,normalizeClass:_normalizeClass$3} = await importShared('vue');
 
@@ -7836,6 +7836,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-4e7a375b"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-f7431912"]]);
 
 export { AppPage as default };
