@@ -30,3 +30,5 @@ git checkout upstream/main -- plugins.v2/subtitlemanualupload
 ## 定制记录
 
 - v0.1.91 — 初始导入官方版（无定制），建立私有市场分发仓库
+- v0.1.92~v0.1.94 — SHIELD 专用版定制（搜索修复、改名、迅雷影音源、弹幕刮削联动），详见 `package.json` history
+- v0.1.95 — 新增「批量匹配字幕」：本地资源页勾选剧集后一键重新提交到自动入库队列（`auto_transfer`，走在线搜索→下载→写盘）；后端新增 `POST /auto_transfer_queue/enqueue` 与 `entry_from_target()`（target→entry 字段映射），前端桌面端工具栏 + 移动端「更多批量操作」各加按钮，带二次确认。改动文件：`catalog/media_target_resolver.py`、`api/status_api.py`、`api/routes.py`、`src/api/subtitleManualUploadApi.js`、`src/composables/useAutoTransferQueue.js`、`src/components/TargetDetailPanel.vue`、`src/components/AppPage.vue`、`src/mobile/MobileSubtitleDetail.vue`、`dist/`。
