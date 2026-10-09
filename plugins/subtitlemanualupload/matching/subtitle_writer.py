@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import threading
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -367,7 +368,48 @@ class SubtitleWriter:
             ]
         )
         owner._invalidate_match_history_cache()
+
+        # 弹幕联动：字幕已落盘、touched_videos 已更新，此时触发弹幕刮削，
+        # 弹幕侧会扫到刚写入的字幕并合并出 {视频}.withDanmu.ass。
+        if touched_videos:
+            self._trigger_danmu_link(list(touched_videos.values()))
+
         return written_results, fixed_count, simplified_count
+
+    def trigger_danmu_link(self, video_paths: List[Any]) -> None:
+        """按配置触发弹幕刮削联动（同步或异步），异常一律吞掉只记日志。"""
+        owner = self._owner
+        if not getattr(owner, "_danmu_link_enabled", False):
+            return
+        videos = [str(path) for path in video_paths if path]
+        if not videos:
+            return
+        try:
+            bridge = owner.services.danmu_bridge()
+        except Exception as exc:
+            self._logger.warning("[SubtitleManualUpload] 初始化弹幕联动桥失败: %s", exc)
+            return
+
+        def _run() -> None:
+            try:
+                bridge.trigger_for_videos(videos)
+            except Exception as exc:
+                self._logger.warning("[SubtitleManualUpload] 弹幕联动异常: %s", exc)
+
+        if bool(getattr(owner, "_danmu_link_async", True)):
+            threading.Thread(
+                target=_run,
+                name="SubtitleManualUploadDanmuLink",
+                daemon=True,
+            ).start()
+            return
+        _run()
+
+    def _trigger_danmu_link(self, video_paths: List[Any]) -> None:
+        try:
+            self.trigger_danmu_link(video_paths)
+        except Exception as exc:
+            self._logger.warning("[SubtitleManualUpload] 弹幕联动触发失败: %s", exc)
 
     def apply_upload_session(
         self,

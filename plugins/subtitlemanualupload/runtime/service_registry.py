@@ -31,6 +31,9 @@ class SubtitleManualUploadServices:
     def autosub_bridge(self):
         return service_factories.autosub_bridge(self._owner)
 
+    def danmu_bridge(self):
+        return service_factories.danmu_bridge(self._owner)
+
     def online_ai(self):
         return service_factories.online_ai_service(self._owner)
 

@@ -6,6 +6,8 @@ import time
 from pathlib import Path
 from typing import Any, Iterable, Optional, Set
 
+from ..integrations.danmu_bridge import is_danmu_product
+
 
 class ManualStrmMonitor:
     """监控用户配置的 STRM 根目录，并把变化交给本地目录缓存。"""
@@ -126,6 +128,8 @@ class ManualStrmMonitor:
         }
 
     def _is_interesting(self, path: Path) -> bool:
+        if is_danmu_product(path.name):
+            return False
         return path.suffix.casefold() in {".strm", ".nfo", *set(getattr(self._owner, "_subtitle_exts", set()) or set())}
 
     def _dispatch(self, paths: Set[str]) -> None:

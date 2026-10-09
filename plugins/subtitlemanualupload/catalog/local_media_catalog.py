@@ -6,6 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from ..integrations.danmu_bridge import is_danmu_product
+
 
 class LocalMediaCatalog:
     def __init__(
@@ -313,7 +315,7 @@ class LocalMediaCatalog:
             elif path.suffix.lower() == ".strm":
                 affected_strm.add(str(path))
                 affected_dirs.add(path.parent)
-            elif path.suffix.lower() in owner._subtitle_exts:
+            elif path.suffix.lower() in owner._subtitle_exts and not is_danmu_product(path.name):
                 affected_dirs.add(path.parent)
             elif path.suffix.lower() == ".nfo":
                 affected_dirs.add(path.parent)

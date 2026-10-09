@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from .target_normalizers import NormalizeText, SafeInt, is_stream_path
+from ..integrations.danmu_bridge import is_danmu_product
 
 DetectLanguageProfile = Callable[[str, bytes], Dict[str, Any]]
 NormalizeLanguageSuffix = Callable[[Any], str]
@@ -127,7 +128,11 @@ class SubtitleInventory:
             subtitle_files = [
                 item
                 for item in media_dir.iterdir()
-                if item.suffix.lower() in self._subtitle_exts and item.is_file()
+                if item.suffix.lower() in self._subtitle_exts
+                and item.is_file()
+                # 排除弹幕刮削产物（{视频}.danmu.ass / {视频}.withDanmu.ass），
+                # 否则合并结果会被当成外挂字幕，造成「弹幕套弹幕」的循环。
+                and not is_danmu_product(item.name)
             ]
         except Exception as exc:
             self._logger_warning(
@@ -412,6 +417,8 @@ class SubtitleInventory:
             if not sub_file.is_file():
                 continue
             if sub_file.suffix.lower() not in self._subtitle_exts:
+                continue
+            if is_danmu_product(sub_file.name):
                 continue
             if not sub_file.name.startswith(f"{video_path.stem}."):
                 continue

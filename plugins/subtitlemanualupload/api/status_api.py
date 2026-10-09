@@ -22,6 +22,7 @@ class StatusApi:
         local_media_catalog = services.local_media_catalog()
         auto_transfer = services.auto_transfer()
         autosub_bridge = services.autosub_bridge()
+        danmu_bridge = services.danmu_bridge()
         return owner._ok(
             {
                 "enabled": owner.get_state(),
@@ -62,6 +63,7 @@ class StatusApi:
                 },
                 "auto_transfer_queue": auto_transfer.auto_transfer_queue_summary(),
                 "ai_subtitle": autosub_bridge.autosub_status(),
+                "danmu_link": danmu_bridge.danmu_status(),
             }
         )
 

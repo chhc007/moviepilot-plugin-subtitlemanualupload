@@ -34,6 +34,7 @@ except Exception:
 
 from ..auto_transfer import AutoTransferCollaborators, AutoTransferService
 from ..integrations.autosub_bridge import AutoSubBridge
+from ..integrations.danmu_bridge import DanmuBridge
 from ..online.online_ai import OnlineAiService
 from ..online.online_subtitle import OnlineSubtitleSearchService, extract_title_aliases
 from ..matching.subtitle_history import SubtitleHistory
@@ -167,6 +168,14 @@ def autosub_bridge(owner) -> AutoSubBridge:
         owner,
         plugin_manager=owner._host_module_value("PluginManager", PluginManager),
         http_exception=HTTPException,
+        logger=logger,
+    )
+
+
+def danmu_bridge(owner) -> DanmuBridge:
+    return DanmuBridge(
+        owner,
+        plugin_manager=owner._host_module_value("PluginManager", PluginManager),
         logger=logger,
     )
 
