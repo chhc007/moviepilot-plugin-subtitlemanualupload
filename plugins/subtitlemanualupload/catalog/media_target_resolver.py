@@ -424,6 +424,62 @@ class MediaTargetResolver:
             "subtitles": resolved_subtitles,
         }
 
+    def entry_from_target(self, target: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """target（前端列表项）→ entry（自动入库队列用）。
+
+        与 target_from_entry 对称：字段名映射（label → target_label）+ 补默认值。
+        仅读取 target 已知字段，忽略 subtitles 等展示字段；path 为空返回 None。
+        """
+        if not isinstance(target, dict):
+            return None
+        path = self._normalize_text(target.get("path"))
+        if not path:
+            return None
+        basename = self._normalize_text(target.get("basename"))
+        filename = Path(path).name
+        media_type = self.media_type_text(target.get("media_type"))
+        title = self._normalize_text(target.get("title"))
+        year = self._normalize_text(target.get("year"))
+        tmdb_id = self._safe_int(target.get("tmdb_id"), 0)
+        douban_id = self._normalize_text(target.get("douban_id"))
+        season = self._safe_int(target.get("season"), 0)
+        episode = self._safe_int(target.get("episode"), 0)
+        media_key = self._hash_text(f"{media_type}|{tmdb_id}|{douban_id}|{title}|{year}")
+        target_label = (
+            self._normalize_text(target.get("label"))
+            or self._normalize_text(target.get("target_label"))
+            or basename
+            or filename
+        )
+        return {
+            "id": target.get("id"),
+            "origin": "transfer_history",
+            "media_key": media_key,
+            "path": path,
+            "basename": basename,
+            "filename": filename,
+            "target_label": target_label,
+            "media_type": media_type,
+            "title": title,
+            "tmdb_id": tmdb_id,
+            "douban_id": douban_id,
+            "season": season,
+            "episode": episode,
+            "year": year,
+            "library_name": target.get("library_name"),
+            "relative_path": target.get("relative_path"),
+            "storage": target.get("storage", "local"),
+            "writable": target.get("writable", True),
+            # 透传识别相关字段（自动搜索关键词要用）
+            "original_language": target.get("original_language"),
+            "origin_country": target.get("origin_country"),
+            "production_countries": target.get("production_countries"),
+            "original_title": target.get("original_title"),
+            "original_name": target.get("original_name"),
+            "en_title": target.get("en_title"),
+            "tmdb_aliases": target.get("tmdb_aliases"),
+        }
+
 
 
 __all__ = [name for name in globals() if not name.startswith("__")]

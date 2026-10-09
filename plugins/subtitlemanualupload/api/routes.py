@@ -82,6 +82,13 @@ def build_api_routes(owner: Any) -> List[Dict[str, Any]]:
             "summary": "重试自动入库字幕任务",
         },
         {
+            "path": "/auto_transfer_queue/enqueue",
+            "endpoint": status_api.enqueue_auto_transfer_targets,
+            "methods": ["POST"],
+            "auth": "bear",
+            "summary": "批量提交选中目标到自动入库队列",
+        },
+        {
             "path": "/auto_transfer_queue/clear_history",
             "endpoint": status_api.clear_auto_transfer_history,
             "methods": ["POST"],

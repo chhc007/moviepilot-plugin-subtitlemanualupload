@@ -113,3 +113,29 @@ class StatusApi:
             {**service.auto_transfer_queue_snapshot(limit=200), "cleared": cleared},
             message=f"已清空 {cleared} 条自动入库历史任务",
         )
+
+    async def enqueue_auto_transfer_targets(self, request: Request) -> Dict[str, Any]:
+        """把选中的本地目标重新提交到自动入库队列（走在线搜索→下载→写盘）。"""
+        owner = self.owner
+        body = await request.json()
+        targets = body.get("targets") if isinstance(body, dict) else None
+        if not isinstance(targets, list) or not targets:
+            raise HTTPException(status_code=400, detail="缺少要提交的目标列表")
+        resolver = owner.services.target_resolver()
+        entries = [entry for item in targets if (entry := resolver.entry_from_target(item))]
+        if not entries:
+            raise HTTPException(status_code=400, detail="没有可提交的有效目标")
+        owner.services.local_media_catalog().merge_local_entries_cache(entries)
+        service = owner.services.auto_transfer()
+        queued, skipped = service.enqueue_transfer_auto_entries(entries)
+        message = f"已提交 {queued} 个目标到自动处理队列"
+        if skipped:
+            message += f"，跳过 {skipped} 个"
+        return owner._ok(
+            {
+                **service.auto_transfer_queue_snapshot(limit=200),
+                "queued": queued,
+                "skipped": skipped,
+            },
+            message=message,
+        )
