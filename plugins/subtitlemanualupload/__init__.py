@@ -164,7 +164,7 @@ class SubtitleManualUpload(_PluginBase):
     plugin_name = "海拉鲁字幕大师SHIELD专用版"
     plugin_desc = "脱胎自 ChineseSubFinder，支持字幕搜索、上传、匹配、改名与智能调轴。"
     plugin_icon = "https://raw.githubusercontent.com/ifsherlock/MoviePilot-Plugins/main/icons/hyrule-subtitle-master.png"
-    plugin_version = "0.1.95"
+    plugin_version = "0.1.96"
     plugin_author = "ifsherlock"
     author_url = "https://github.com/ifsherlock"
     plugin_config_prefix = "subtitlemanualupload_"
@@ -214,6 +214,7 @@ class SubtitleManualUpload(_PluginBase):
     _auto_search_on_transfer = False
     _auto_skip_chinese_media_on_transfer = True
     _auto_transfer_subtitle_strategy = "online_then_ai_source"
+    _auto_transfer_timeline_mode = "degrade"
     _auto_search_min_score = 20
     _trust_transfer_history_paths = False
     _manual_strm_enabled = False

@@ -27,6 +27,7 @@ MANUAL_ONLINE_PROVIDER_IDS = ["subhd", "thunder", "assrt", "opensubtitles"]
 RAR_DEPENDENCY_MODES = {"none", "container_install", "mapped_binary"}
 AUTO_TRANSFER_SUBTITLE_STRATEGIES = {"online_then_ai_source", "online_source_only", "ai_source_only"}
 AUTO_MULTI_SUBTITLE_MODES = {"best", "chinese_all", "all"}
+AUTO_TRANSFER_TIMELINE_MODES = {"degrade", "off", "strict"}
 AUTO_TRANSFER_SUBTITLE_STRATEGY_ALIASES = {
     "search_first": "online_then_ai_source",
     "search_only": "online_source_only",
@@ -49,6 +50,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "manual_strm_paths": [],
     "auto_search_on_manual_strm": False,
     "auto_multi_subtitle_mode": "best",
+    "auto_transfer_timeline_mode": "degrade",
     "auto_subtitle_language_priority": list(DEFAULT_AUTO_LANGUAGE_PRIORITY),
     "auto_subtitle_format_priority": list(DEFAULT_AUTO_FORMAT_PRIORITY),
     "auto_ass_to_srt_for_ai": True,
@@ -141,6 +143,12 @@ def normalize_rar_dependency_mode(value: Any) -> str:
     if mode in RAR_DEPENDENCY_MODES:
         return mode
     return "none"
+
+
+def normalize_auto_transfer_timeline_mode(value: Any) -> str:
+    """自动入库调轴模式：degrade（低可信降级写入原字幕）/ off（不调轴）/ strict（低可信拒绝）。"""
+    mode = normalize_text(value).lower()
+    return mode if mode in AUTO_TRANSFER_TIMELINE_MODES else "degrade"
 
 
 def normalize_auto_transfer_subtitle_strategy(value: Any) -> str:
@@ -271,6 +279,9 @@ def normalize_plugin_config(
         "manual_strm_paths": normalize_manual_strm_paths(raw_config.get("manual_strm_paths")),
         "auto_search_on_manual_strm": bool(raw_config.get("auto_search_on_manual_strm", False)),
         "auto_multi_subtitle_mode": normalize_auto_multi_subtitle_mode(raw_config.get("auto_multi_subtitle_mode")),
+        "auto_transfer_timeline_mode": normalize_auto_transfer_timeline_mode(
+            raw_config.get("auto_transfer_timeline_mode")
+        ),
         "auto_subtitle_language_priority": normalize_auto_language_priority(
             raw_config.get("auto_subtitle_language_priority"),
             list(default_auto_language_priority or DEFAULT_AUTO_LANGUAGE_PRIORITY),
@@ -496,6 +507,21 @@ def build_config_form(
                         "VSwitch",
                         {"model": "auto_ass_to_srt_for_ai", "label": "英文 ASS 转临时 SRT 后提交 AI"},
                         md=4,
+                    ),
+                    _col(
+                        "VSelect",
+                        {
+                            "model": "auto_transfer_timeline_mode",
+                            "label": "自动入库智能调轴",
+                            "items": [
+                                {"title": "调轴，低可信降级写入原字幕（推荐）", "value": "degrade"},
+                                {"title": "不调轴，直接写入原字幕", "value": "off"},
+                                {"title": "调轴，低可信拒绝写入并标失败", "value": "strict"},
+                            ],
+                            "hint": "仅影响入库自动队列；手动上传/单集匹配不受影响。",
+                            "persistentHint": True,
+                        },
+                        md=8,
                     ),
                 ),
                 _row(

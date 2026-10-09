@@ -232,6 +232,7 @@ class SubtitleWriter:
         fix_timeline: bool = False,
         allow_risky_offset: bool = False,
         force_low_confidence: bool = False,
+        timeline_mode: str = "strict",
     ) -> Tuple[List[Dict[str, Any]], int, int]:
         owner = self._owner
         fixed_dir = session_dir / "timeline_fixed"
@@ -291,7 +292,8 @@ class SubtitleWriter:
                     ) from exc
                 if owner._timeline_result_blocks_auto_write(timeline_result):
                     rejection = owner._timeline_rejection_message(timeline_result)
-                    if not force_low_confidence:
+                    mode = timeline_mode if timeline_mode in {"degrade", "off", "strict"} else "strict"
+                    if not force_low_confidence and mode == "strict":
                         owner._set_timeline_task(
                             operation,
                             status="failed",
@@ -302,6 +304,36 @@ class SubtitleWriter:
                             status_code=409,
                             detail=f"智能调轴低可信，已拒绝写入: {operation['upload_info'].get('source_name')} - {rejection}",
                         )
+                    if not force_low_confidence:
+                        # degrade：不采用低可信调轴结果，回退到未调轴的原字幕继续写入，
+                        # 并把 timeline_result 标记为「未应用」，避免写入错位内容。
+                        self._logger.warning(
+                            "[SubtitleManualUpload] 调轴低可信，降级写入未调轴字幕 source=%s target=%s result=%s",
+                            operation["upload_info"].get("source_name"),
+                            operation["target_entry"].get("target_label"),
+                            rejection,
+                        )
+                        operation["write_source_path"] = operation["source_path"]
+                        operation["timeline_result"] = self._timeline_result_type(
+                            enabled=True,
+                            applied=False,
+                            reason=f"degraded low confidence: {rejection}",
+                            base=timeline_result.base,
+                            offset_seconds=0.0,
+                            scale_factor=1.0,
+                            score=timeline_result.score,
+                            confidence=timeline_result.confidence,
+                            score_margin=timeline_result.score_margin,
+                            risk_flags=list(timeline_result.risk_flags or []),
+                        )
+                        owner._set_timeline_task(
+                            operation,
+                            status="completed",
+                            message=f"调轴低可信，已降级写入未调轴字幕: {rejection}",
+                            timeline_result=operation["timeline_result"],
+                        )
+                        self.maybe_convert_operation_to_simplified(operation, simplified_dir)
+                        continue
                     self._logger.warning(
                         "[SubtitleManualUpload] 用户强制写入低可信调轴结果 source=%s target=%s result=%s",
                         operation["upload_info"].get("source_name"),

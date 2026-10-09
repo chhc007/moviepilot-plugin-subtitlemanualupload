@@ -151,11 +151,15 @@ class AutoTransferWriteStrategy:
         operations: List[Dict[str, Any]] = []
         if chinese_items:
             operations = owner._subtitle_writer().build_write_operations(chinese_items, upload_map, target_entry_map)
+            # 自动入库调轴模式：off 不调轴，degrade/strict 调轴（低可信处理见 subtitle_writer）
+            timeline_mode = getattr(owner, "_auto_transfer_timeline_mode", "degrade")
+            fix_timeline = timeline_mode != "off"
             written, _, simplified_count = self._collaborators.write_operations_to_disk(
                 session_dir=session_dir,
                 operations=operations,
-                fix_timeline=True,
+                fix_timeline=fix_timeline,
                 force_low_confidence=force_low_confidence,
+                timeline_mode=timeline_mode,
             )
 
         ai_submit_result: Optional[Dict[str, Any]] = None
