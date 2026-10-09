@@ -226,6 +226,9 @@ class FakeCatalog:
     def __init__(self):
         self.merged = None
 
+    def entries(self):
+        return []
+
     def merge_local_entries_cache(self, entries):
         self.merged = entries
 
