@@ -35,7 +35,9 @@ export function useAutoTransferQueue({
   const autoQueueSummary = computed(() => autoTransferQueue.value?.summary || {})
   const autoQueueTasks = computed(() => autoTransferQueue.value?.tasks || [])
   const autoQueueActive = computed(() => Number(autoQueueSummary.value.active || 0) > 0)
-  const batchMatchTargets = computed(() => (selectedTargets?.value || []).filter(item => !isLocked?.(item.id)))
+  const batchMatchTargets = computed(() => (selectedTargets?.value || []).filter(
+    item => !isLocked?.(item.id) && item.writable !== false,
+  ))
   const autoQueueSummaryText = computed(() => {
     const parts = []
     if (autoQueueSummary.value.in_progress) parts.push(`${autoQueueSummary.value.in_progress} 个处理中`)

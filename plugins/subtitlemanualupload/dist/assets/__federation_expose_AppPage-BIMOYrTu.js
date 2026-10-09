@@ -822,7 +822,9 @@ function useAutoTransferQueue({
   const autoQueueSummary = computed$c(() => autoTransferQueue.value?.summary || {});
   const autoQueueTasks = computed$c(() => autoTransferQueue.value?.tasks || []);
   const autoQueueActive = computed$c(() => Number(autoQueueSummary.value.active || 0) > 0);
-  const batchMatchTargets = computed$c(() => (selectedTargets?.value || []).filter(item => !isLocked?.(item.id)));
+  const batchMatchTargets = computed$c(() => (selectedTargets?.value || []).filter(
+    item => !isLocked?.(item.id) && item.writable !== false,
+  ));
   const autoQueueSummaryText = computed$c(() => {
     const parts = [];
     if (autoQueueSummary.value.in_progress) parts.push(`${autoQueueSummary.value.in_progress} 个处理中`);
