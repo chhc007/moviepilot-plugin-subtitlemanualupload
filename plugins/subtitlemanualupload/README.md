@@ -8,6 +8,18 @@ MoviePilot V2 字幕管理插件，脱胎自 [ChineseSubFinder](https://github.c
 
 详细配置、额外 STRM 实时监控和字幕写入说明见：[功能使用教学](../../docs/SubtitleManualUpload功能使用教学.md)。
 
+## v0.1.96 更新
+
+- **修复「批量匹配字幕」导致媒体库条目封面丢失 + 排序靠后**（v0.1.95 引入的缺陷）：
+  - 根因：`entry_from_target()` 产出的 entry 缺 `poster_url` / `poster_thumb_url` / `date` 三字段，合并缓存时用空值覆盖了原条目（封面消失、无时间戳导致排到最后）。
+  - 修复：`target_from_entry()` / `entry_from_target()` 双向透传这三个字段（`date` 缺省补当前时间、`library_name` 空时回退默认）；`POST /auto_transfer_queue/enqueue` 在合并缓存前，按 `media_key` 用现有缓存回填新条目的空字段（**不覆盖已有值**）。
+  - 已受影响的《非自然死亡》10 条缓存：经插件自身刷新重建后封面与时间戳恢复（复用既有 `build_entry_from_history` 路径，非手工改文件）。
+- **新增「自动入库智能调轴」开关**（`auto_transfer_timeline_mode`，三档，仅影响入库自动队列）：
+  - `degrade`（默认）：调轴；低可信时**降级写入未调轴的原字幕**，不再整批失败。
+  - `off`：**不调轴**，直接写入原字幕（最稳）。
+  - `strict`：保持上游行为，低可信**拒绝写入并标失败**（`409`）。
+  - 修复前 `auto_transfer_write.py` 硬编码 `fix_timeline=True`，低可信时整批 `409`、字幕完全写不进去。手动上传/单集匹配行为不变。
+
 ## v0.1.95 更新
 
 - **新增「批量匹配字幕」**：本地资源页勾选剧集后，桌面端工具栏与移动端「更多批量操作」均新增 **批量匹配字幕** 按钮，一键把选中的集重新提交到自动入库队列（`auto_transfer`），走**在线搜索 → 下载 → 写盘**全流程，免去逐集手动匹配。
