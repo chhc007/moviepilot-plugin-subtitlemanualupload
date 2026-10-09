@@ -918,6 +918,10 @@ function useAutoTransferQueue({
       year: target.year,
       library_name: target.library_name,
       relative_path: target.relative_path,
+      // 展示元数据（target_from_entry 已透传），随 target 一起回传，保证往返对称
+      poster_url: target.poster_url,
+      poster_thumb_url: target.poster_thumb_url,
+      date: target.date,
       storage: target.storage,
       writable: target.writable,
       original_language: target.original_language,

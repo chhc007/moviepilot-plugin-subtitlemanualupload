@@ -45,6 +45,7 @@ const localConfig = ref({
   manual_strm_paths: '',
   auto_search_on_manual_strm: false,
   auto_multi_subtitle_mode: 'best',
+  auto_transfer_timeline_mode: 'degrade',
   auto_subtitle_language_priority: ['bilingual', 'chi', 'cht', 'eng'],
   auto_subtitle_format_priority: ['.ass', '.srt', '.ssa', '.vtt'],
   auto_ass_to_srt_for_ai: true,
@@ -93,6 +94,12 @@ const autoMultiSubtitleModes = [
   { title: '按偏好选择最佳', value: 'best' },
   { title: '中文/双语全部入库', value: 'chinese_all' },
   { title: '全部入库', value: 'all' },
+];
+
+const autoTransferTimelineModes = [
+  { title: '调轴，低可信降级写入原字幕（推荐）', value: 'degrade' },
+  { title: '不调轴，直接写入原字幕', value: 'off' },
+  { title: '调轴，低可信拒绝写入并标失败', value: 'strict' },
 ];
 
 const autoLanguageItems = [
@@ -199,6 +206,9 @@ function normalizeConfig(input) {
     auto_multi_subtitle_mode: autoMultiSubtitleModes.some(item => item.value === input?.auto_multi_subtitle_mode)
       ? input.auto_multi_subtitle_mode
       : 'best',
+    auto_transfer_timeline_mode: autoTransferTimelineModes.some(item => item.value === input?.auto_transfer_timeline_mode)
+      ? input.auto_transfer_timeline_mode
+      : 'degrade',
     auto_subtitle_language_priority: normalizeList(
       input?.auto_subtitle_language_priority,
       autoLanguageItems.map(item => item.value),
@@ -268,7 +278,7 @@ return (_ctx, _cache) => {
       color: "transparent"
     }, {
       default: _withCtx(() => [
-        _cache[38] || (_cache[38] = _createElementVNode("div", { class: "text-h6 ms-3" }, "海拉鲁字幕大师配置", -1)),
+        _cache[39] || (_cache[39] = _createElementVNode("div", { class: "text-h6 ms-3" }, "海拉鲁字幕大师配置", -1)),
         _createVNode(_component_VSpacer),
         _createVNode(_component_VBtn, {
           href: "https://github.com/ifsherlock/MoviePilot-Plugins/blob/main/docs/SubtitleManualUpload%E5%8A%9F%E8%83%BD%E4%BD%BF%E7%94%A8%E6%95%99%E5%AD%A6.md",
@@ -279,7 +289,7 @@ return (_ctx, _cache) => {
           color: "primary",
           class: "me-2"
         }, {
-          default: _withCtx(() => [...(_cache[37] || (_cache[37] = [
+          default: _withCtx(() => [...(_cache[38] || (_cache[38] = [
             _createTextVNode(" 使用教程 ", -1)
           ]))]),
           _: 1
@@ -318,7 +328,7 @@ return (_ctx, _cache) => {
                     text: configError.value
                   }, null, 8, ["text"]))
                 : _createCommentVNode("", true),
-              _cache[39] || (_cache[39] = _createElementVNode("div", { class: "config-section" }, [
+              _cache[40] || (_cache[40] = _createElementVNode("div", { class: "config-section" }, [
                 _createElementVNode("div", { class: "config-section-title" }, "基础设置")
               ], -1)),
               _createElementVNode("div", _hoisted_3, [
@@ -485,10 +495,20 @@ return (_ctx, _cache) => {
                   label: "英文 ASS 转临时 SRT 后提交 AI",
                   color: "info",
                   "hide-details": ""
+                }, null, 8, ["modelValue"]),
+                _createVNode(_component_VSelect, {
+                  modelValue: localConfig.value.auto_transfer_timeline_mode,
+                  "onUpdate:modelValue": _cache[19] || (_cache[19] = $event => ((localConfig.value.auto_transfer_timeline_mode) = $event)),
+                  items: autoTransferTimelineModes,
+                  label: "自动入库智能调轴",
+                  variant: "outlined",
+                  density: "comfortable",
+                  hint: "仅影响入库自动队列；低可信时默认降级写入未调轴原字幕。手动上传/单集匹配不受影响。",
+                  "persistent-hint": ""
                 }, null, 8, ["modelValue"])
               ]),
               _createVNode(_component_VDivider, { class: "my-5" }),
-              _cache[40] || (_cache[40] = _createElementVNode("div", { class: "config-section" }, [
+              _cache[41] || (_cache[41] = _createElementVNode("div", { class: "config-section" }, [
                 _createElementVNode("div", null, [
                   _createElementVNode("div", { class: "config-section-title" }, "在线字幕搜索"),
                   _createElementVNode("p", null, "自动搜索支持 SubHD、迅雷影音、射手网(伪) 和 OpenSubtitles；站点波动时仍可使用右侧手动搜索跳转。")
@@ -497,7 +517,7 @@ return (_ctx, _cache) => {
               _createElementVNode("div", _hoisted_4, [
                 _createVNode(_component_VSelect, {
                   modelValue: localConfig.value.online_providers,
-                  "onUpdate:modelValue": _cache[19] || (_cache[19] = $event => ((localConfig.value.online_providers) = $event)),
+                  "onUpdate:modelValue": _cache[20] || (_cache[20] = $event => ((localConfig.value.online_providers) = $event)),
                   items: onlineProviderItems,
                   label: "启用字幕源",
                   variant: "outlined",
@@ -508,7 +528,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VSelect, {
                   modelValue: localConfig.value.online_use_proxy,
-                  "onUpdate:modelValue": _cache[20] || (_cache[20] = $event => ((localConfig.value.online_use_proxy) = $event)),
+                  "onUpdate:modelValue": _cache[21] || (_cache[21] = $event => ((localConfig.value.online_use_proxy) = $event)),
                   items: [
                 { title: '不使用系统代理', value: false },
                 { title: '使用 MoviePilot 系统代理', value: true },
@@ -520,7 +540,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.subhd_url,
-                  "onUpdate:modelValue": _cache[21] || (_cache[21] = $event => ((localConfig.value.subhd_url) = $event)),
+                  "onUpdate:modelValue": _cache[22] || (_cache[22] = $event => ((localConfig.value.subhd_url) = $event)),
                   label: "SubHD 站点地址",
                   placeholder: "https://subhd.tv",
                   variant: "outlined",
@@ -529,7 +549,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.thunder_url,
-                  "onUpdate:modelValue": _cache[22] || (_cache[22] = $event => ((localConfig.value.thunder_url) = $event)),
+                  "onUpdate:modelValue": _cache[23] || (_cache[23] = $event => ((localConfig.value.thunder_url) = $event)),
                   label: "迅雷影音接口地址",
                   placeholder: "https://api-shoulei-ssl.xunlei.com/oracle/subtitle",
                   variant: "outlined",
@@ -538,7 +558,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.assrt_url,
-                  "onUpdate:modelValue": _cache[23] || (_cache[23] = $event => ((localConfig.value.assrt_url) = $event)),
+                  "onUpdate:modelValue": _cache[24] || (_cache[24] = $event => ((localConfig.value.assrt_url) = $event)),
                   label: "射手网(伪) 手动搜索地址",
                   placeholder: "https://2.assrt.net",
                   variant: "outlined",
@@ -547,7 +567,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.assrt_api_url,
-                  "onUpdate:modelValue": _cache[24] || (_cache[24] = $event => ((localConfig.value.assrt_api_url) = $event)),
+                  "onUpdate:modelValue": _cache[25] || (_cache[25] = $event => ((localConfig.value.assrt_api_url) = $event)),
                   label: "射手网(伪) API 地址",
                   placeholder: "https://api.assrt.net",
                   variant: "outlined",
@@ -556,7 +576,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.assrt_api_key,
-                  "onUpdate:modelValue": _cache[25] || (_cache[25] = $event => ((localConfig.value.assrt_api_key) = $event)),
+                  "onUpdate:modelValue": _cache[26] || (_cache[26] = $event => ((localConfig.value.assrt_api_key) = $event)),
                   label: "射手网(伪) API Key",
                   placeholder: "未填写时默认不启用伪射手自动搜索",
                   variant: "outlined",
@@ -567,7 +587,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.opensubtitles_url,
-                  "onUpdate:modelValue": _cache[26] || (_cache[26] = $event => ((localConfig.value.opensubtitles_url) = $event)),
+                  "onUpdate:modelValue": _cache[27] || (_cache[27] = $event => ((localConfig.value.opensubtitles_url) = $event)),
                   label: "OpenSubtitles 手动搜索地址",
                   placeholder: "https://www.opensubtitles.com",
                   variant: "outlined",
@@ -576,7 +596,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.opensubtitles_api_url,
-                  "onUpdate:modelValue": _cache[27] || (_cache[27] = $event => ((localConfig.value.opensubtitles_api_url) = $event)),
+                  "onUpdate:modelValue": _cache[28] || (_cache[28] = $event => ((localConfig.value.opensubtitles_api_url) = $event)),
                   label: "OpenSubtitles API 地址",
                   placeholder: "https://api.opensubtitles.com/api/v1",
                   variant: "outlined",
@@ -585,7 +605,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.opensubtitles_api_key,
-                  "onUpdate:modelValue": _cache[28] || (_cache[28] = $event => ((localConfig.value.opensubtitles_api_key) = $event)),
+                  "onUpdate:modelValue": _cache[29] || (_cache[29] = $event => ((localConfig.value.opensubtitles_api_key) = $event)),
                   label: "OpenSubtitles API Key",
                   placeholder: "用于搜索多语言字幕",
                   variant: "outlined",
@@ -596,7 +616,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.opensubtitles_username,
-                  "onUpdate:modelValue": _cache[29] || (_cache[29] = $event => ((localConfig.value.opensubtitles_username) = $event)),
+                  "onUpdate:modelValue": _cache[30] || (_cache[30] = $event => ((localConfig.value.opensubtitles_username) = $event)),
                   label: "OpenSubtitles 用户名（可选）",
                   placeholder: "下载时用于后台登录换取 token",
                   variant: "outlined",
@@ -607,7 +627,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue", "error", "error-messages"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.opensubtitles_password,
-                  "onUpdate:modelValue": _cache[30] || (_cache[30] = $event => ((localConfig.value.opensubtitles_password) = $event)),
+                  "onUpdate:modelValue": _cache[31] || (_cache[31] = $event => ((localConfig.value.opensubtitles_password) = $event)),
                   label: "OpenSubtitles 密码（可选）",
                   placeholder: "下载时用于后台登录换取 token",
                   variant: "outlined",
@@ -625,7 +645,7 @@ return (_ctx, _cache) => {
                 text: "OpenSubtitles 搜索需要 API Key；下载由插件使用用户名和密码后台登录换取 token。英文字幕结果可下载后提交给 AI 字幕生成翻译。"
               }),
               _createVNode(_component_VDivider, { class: "my-5" }),
-              _cache[41] || (_cache[41] = _createElementVNode("div", { class: "config-section" }, [
+              _cache[42] || (_cache[42] = _createElementVNode("div", { class: "config-section" }, [
                 _createElementVNode("div", null, [
                   _createElementVNode("div", { class: "config-section-title" }, "智能调轴"),
                   _createElementVNode("p", null, "控制写入前可接受的全局偏移范围；超过 120 秒通常意味着错集、错版本或整季包映射错误。")
@@ -634,7 +654,7 @@ return (_ctx, _cache) => {
               _createElementVNode("div", _hoisted_5, [
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.timeline_max_offset_seconds,
-                  "onUpdate:modelValue": _cache[31] || (_cache[31] = $event => ((localConfig.value.timeline_max_offset_seconds) = $event)),
+                  "onUpdate:modelValue": _cache[32] || (_cache[32] = $event => ((localConfig.value.timeline_max_offset_seconds) = $event)),
                   modelModifiers: { number: true },
                   label: "智能调轴最大偏移秒数",
                   type: "number",
@@ -648,7 +668,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.timeline_min_offset_seconds,
-                  "onUpdate:modelValue": _cache[32] || (_cache[32] = $event => ((localConfig.value.timeline_min_offset_seconds) = $event)),
+                  "onUpdate:modelValue": _cache[33] || (_cache[33] = $event => ((localConfig.value.timeline_min_offset_seconds) = $event)),
                   modelModifiers: { number: true },
                   label: "最小应用阈值",
                   type: "number",
@@ -662,7 +682,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VSelect, {
                   modelValue: localConfig.value.timeline_vad_mode,
-                  "onUpdate:modelValue": _cache[33] || (_cache[33] = $event => ((localConfig.value.timeline_vad_mode) = $event)),
+                  "onUpdate:modelValue": _cache[34] || (_cache[34] = $event => ((localConfig.value.timeline_vad_mode) = $event)),
                   items: timelineVadItems,
                   label: "音频 VAD 模式",
                   variant: "outlined",
@@ -671,7 +691,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VSwitch, {
                   modelValue: localConfig.value.timeline_allow_risky_offset,
-                  "onUpdate:modelValue": _cache[34] || (_cache[34] = $event => ((localConfig.value.timeline_allow_risky_offset) = $event)),
+                  "onUpdate:modelValue": _cache[35] || (_cache[35] = $event => ((localConfig.value.timeline_allow_risky_offset) = $event)),
                   label: "全局允许高风险偏移",
                   color: "warning",
                   hint: "不建议开启。开启后后端会允许 120 秒以上结果；手动操作仍会显示风险确认。",
@@ -679,7 +699,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"])
               ]),
               _createVNode(_component_VDivider, { class: "my-5" }),
-              _cache[42] || (_cache[42] = _createElementVNode("div", { class: "config-section" }, [
+              _cache[43] || (_cache[43] = _createElementVNode("div", { class: "config-section" }, [
                 _createElementVNode("div", null, [
                   _createElementVNode("div", { class: "config-section-title" }, "RAR / 7Z 解压器"),
                   _createElementVNode("p", null, [
@@ -692,7 +712,7 @@ return (_ctx, _cache) => {
               _createElementVNode("div", _hoisted_6, [
                 _createVNode(_component_VSelect, {
                   modelValue: localConfig.value.rar_dependency_mode,
-                  "onUpdate:modelValue": _cache[35] || (_cache[35] = $event => ((localConfig.value.rar_dependency_mode) = $event)),
+                  "onUpdate:modelValue": _cache[36] || (_cache[36] = $event => ((localConfig.value.rar_dependency_mode) = $event)),
                   items: rarDependencyModes,
                   label: "压缩包解压器处理方式",
                   variant: "outlined",
@@ -701,7 +721,7 @@ return (_ctx, _cache) => {
                 }, null, 8, ["modelValue"]),
                 _createVNode(_component_VTextField, {
                   modelValue: localConfig.value.rar_tool_path,
-                  "onUpdate:modelValue": _cache[36] || (_cache[36] = $event => ((localConfig.value.rar_tool_path) = $event)),
+                  "onUpdate:modelValue": _cache[37] || (_cache[37] = $event => ((localConfig.value.rar_tool_path) = $event)),
                   label: "容器内映射路径",
                   placeholder: "/usr/bin/unar",
                   variant: "outlined",
@@ -727,6 +747,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-93559984"]]);
+const Config = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-2ba471a3"]]);
 
 export { Config as default };

@@ -27,6 +27,7 @@ const localConfig = ref({
   manual_strm_paths: '',
   auto_search_on_manual_strm: false,
   auto_multi_subtitle_mode: 'best',
+  auto_transfer_timeline_mode: 'degrade',
   auto_subtitle_language_priority: ['bilingual', 'chi', 'cht', 'eng'],
   auto_subtitle_format_priority: ['.ass', '.srt', '.ssa', '.vtt'],
   auto_ass_to_srt_for_ai: true,
@@ -75,6 +76,12 @@ const autoMultiSubtitleModes = [
   { title: '按偏好选择最佳', value: 'best' },
   { title: '中文/双语全部入库', value: 'chinese_all' },
   { title: '全部入库', value: 'all' },
+]
+
+const autoTransferTimelineModes = [
+  { title: '调轴，低可信降级写入原字幕（推荐）', value: 'degrade' },
+  { title: '不调轴，直接写入原字幕', value: 'off' },
+  { title: '调轴，低可信拒绝写入并标失败', value: 'strict' },
 ]
 
 const autoLanguageItems = [
@@ -181,6 +188,9 @@ function normalizeConfig(input) {
     auto_multi_subtitle_mode: autoMultiSubtitleModes.some(item => item.value === input?.auto_multi_subtitle_mode)
       ? input.auto_multi_subtitle_mode
       : 'best',
+    auto_transfer_timeline_mode: autoTransferTimelineModes.some(item => item.value === input?.auto_transfer_timeline_mode)
+      ? input.auto_transfer_timeline_mode
+      : 'degrade',
     auto_subtitle_language_priority: normalizeList(
       input?.auto_subtitle_language_priority,
       autoLanguageItems.map(item => item.value),
@@ -405,6 +415,15 @@ onMounted(() => {
               label="英文 ASS 转临时 SRT 后提交 AI"
               color="info"
               hide-details
+            />
+            <VSelect
+              v-model="localConfig.auto_transfer_timeline_mode"
+              :items="autoTransferTimelineModes"
+              label="自动入库智能调轴"
+              variant="outlined"
+              density="comfortable"
+              hint="仅影响入库自动队列；低可信时默认降级写入未调轴原字幕。手动上传/单集匹配不受影响。"
+              persistent-hint
             />
           </div>
 
