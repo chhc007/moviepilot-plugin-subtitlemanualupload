@@ -271,7 +271,9 @@ resp = asyncio.run(StatusApi(owner).enqueue_auto_transfer_targets(FakeRequest({"
 merged = catalog.merged[0]
 check("回填 poster_url（取缓存值）", merged.get("poster_url") == cached_entry["poster_url"], str(merged.get("poster_url")))
 check("回填 poster_thumb_url", merged.get("poster_thumb_url") == cached_entry["poster_thumb_url"])
-check("回填 date（不排到最后）", merged.get("date") == cached_entry["date"], str(merged.get("date")))
+# date：entry_from_target 已补默认（当前时间），保证永不排到最后；
+# 若 target 自带 date 则原样保留，否则用默认值（回填仅作安全网，因默认值已非空）。
+check("date 非空（不排到最后）", bool(merged.get("date")) and len(merged["date"]) >= 19, str(merged.get("date")))
 check("端点返回 success", resp.get("success") is True)
 
 # 不覆盖已有值：target 自带 poster 时保留 target 的
