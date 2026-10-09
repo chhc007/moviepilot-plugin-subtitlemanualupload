@@ -156,21 +156,26 @@ const {
   autoTransferQueue,
   autoQueueDialog,
   autoQueueMutating,
+  autoQueueEnqueueing,
   autoQueueActionTaskId,
   autoQueueSummary,
   autoQueueTasks,
   autoQueueSummaryText,
+  batchMatchTargets,
   applyAutoTransferSummary,
   stopAutoQueuePolling,
   loadAutoTransferQueue,
   retryAutoTransferTask,
   clearAutoTransferHistory,
+  enqueueAutoTransferTargets,
 } = useAutoTransferQueue({
   pluginApi,
   unwrapResponse,
   errorMessage,
   error,
   message,
+  selectedTargets,
+  isLocked,
 })
 
 const {
@@ -728,6 +733,8 @@ const mobileView = reactive({
     timelineMetaItems,
     timelineResultForTarget,
     timelineResultText,
+    autoQueueEnqueueing,
+    batchMatchTargets,
   },
   history: {
     panelProps: {
@@ -812,6 +819,7 @@ const mobileActions = {
     clearSelectedSubtitles,
     fixSelectedDetailTimeline,
     restoreSelectedBackups,
+    enqueueAutoTransferTargets,
     toggleTarget,
     toggleDetailExpanded,
     openSingleAiGenerate,
@@ -1012,6 +1020,8 @@ defineExpose({
         :online-searching="onlineSearching"
         :online-batch-label="onlineBatchLabel"
         :batch-upload-targets="batchUploadTargets"
+        :batch-match-targets="batchMatchTargets"
+        :batch-match-enqueueing="autoQueueEnqueueing"
         :clearing="clearing"
         :selected-timeline-targets="selectedTimelineTargets"
         :timeline-fixing="timelineFixing"
@@ -1048,6 +1058,7 @@ defineExpose({
         @open-batch-ai-generate="openBatchAiGenerate"
         @cancel-batch-ai-generate="cancelBatchAiGenerate"
         @open-batch-online-search="openBatchOnlineSearch"
+        @batch-match-subtitles="enqueueAutoTransferTargets"
         @clear-selected-subtitles="clearSelectedSubtitles"
         @fix-selected-detail-timeline="fixSelectedDetailTimeline"
         @restore-selected-backups="restoreSelectedBackups"

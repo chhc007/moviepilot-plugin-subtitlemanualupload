@@ -183,6 +183,17 @@ const bulkActionsOpen = ref(false)
           >
             恢复调轴前备份
           </VBtn>
+          <VBtn
+            block
+            color="deep-purple"
+            variant="flat"
+            prepend-icon="mdi-playlist-plus"
+            :disabled="!detail.batchMatchTargets.length"
+            :loading="detail.autoQueueEnqueueing"
+            @click="actions.enqueueAutoTransferTargets(); bulkActionsOpen = false"
+          >
+            批量匹配字幕{{ detail.batchMatchTargets.length ? ` (${detail.batchMatchTargets.length})` : '' }}
+          </VBtn>
         </VCardText>
       </VCard>
     </VBottomSheet>

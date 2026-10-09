@@ -212,6 +212,9 @@ function createSubtitleManualUploadApi(api, pluginBase) {
     retryAutoTransferTask(payload) {
       return post('/auto_transfer_queue/retry', payload)
     },
+    enqueueAutoTransferTargets(payload) {
+      return post('/auto_transfer_queue/enqueue', payload)
+    },
     clearAutoTransferHistory(payload = {}) {
       return post('/auto_transfer_queue/clear_history', payload)
     },
@@ -806,16 +809,20 @@ function useAutoTransferQueue({
   errorMessage,
   error,
   message,
+  selectedTargets,
+  isLocked,
 }) {
   const autoTransferQueue = ref$e(createEmptyAutoTransferQueue());
   const autoQueueDialog = ref$e(false);
   const autoQueueMutating = ref$e(false);
+  const autoQueueEnqueueing = ref$e(false);
   const autoQueueActionTaskId = ref$e('');
   let autoQueueTimer = null;
 
   const autoQueueSummary = computed$c(() => autoTransferQueue.value?.summary || {});
   const autoQueueTasks = computed$c(() => autoTransferQueue.value?.tasks || []);
   const autoQueueActive = computed$c(() => Number(autoQueueSummary.value.active || 0) > 0);
+  const batchMatchTargets = computed$c(() => (selectedTargets?.value || []).filter(item => !isLocked?.(item.id)));
   const autoQueueSummaryText = computed$c(() => {
     const parts = [];
     if (autoQueueSummary.value.in_progress) parts.push(`${autoQueueSummary.value.in_progress} 个处理中`);
@@ -894,21 +901,77 @@ function useAutoTransferQueue({
     }
   }
 
+  function buildAutoTransferTargetPayload(target) {
+    return {
+      id: target.id,
+      path: target.path,
+      basename: target.basename,
+      label: target.label,
+      media_type: target.media_type,
+      title: target.title,
+      tmdb_id: target.tmdb_id,
+      douban_id: target.douban_id,
+      season: target.season,
+      episode: target.episode,
+      year: target.year,
+      library_name: target.library_name,
+      relative_path: target.relative_path,
+      storage: target.storage,
+      writable: target.writable,
+      original_language: target.original_language,
+      origin_country: target.origin_country,
+      production_countries: target.production_countries,
+      original_title: target.original_title,
+      original_name: target.original_name,
+      en_title: target.en_title,
+      tmdb_aliases: target.tmdb_aliases,
+    }
+  }
+
+  async function enqueueAutoTransferTargets() {
+    const usableTargets = batchMatchTargets.value;
+    if (!usableTargets.length || autoQueueEnqueueing.value) return
+    const confirmed = window.confirm(
+      `确认把选中的 ${usableTargets.length} 个目标重新提交到自动处理队列？\n\n` +
+      '将触发在线搜索 → 下载 → 写盘全流程，会对目标目录写入字幕文件，且该操作不可撤销。\n' +
+      '已在队列中的目标会自动跳过。',
+    );
+    if (!confirmed) return
+    autoQueueEnqueueing.value = true;
+    error.value = '';
+    message.value = '';
+    try {
+      const response = await pluginApi.value.enqueueAutoTransferTargets({
+        targets: usableTargets.map(buildAutoTransferTargetPayload),
+      });
+      autoTransferQueue.value = unwrapResponse(response) || autoTransferQueue.value;
+      message.value = response?.message || `已提交 ${usableTargets.length} 个目标到自动处理队列`;
+      scheduleAutoQueuePolling();
+    } catch (err) {
+      error.value = errorMessage(err, '批量匹配字幕失败');
+    } finally {
+      autoQueueEnqueueing.value = false;
+    }
+  }
+
   return {
     autoTransferQueue,
     autoQueueDialog,
     autoQueueMutating,
+    autoQueueEnqueueing,
     autoQueueActionTaskId,
     autoQueueSummary,
     autoQueueTasks,
     autoQueueActive,
     autoQueueSummaryText,
+    batchMatchTargets,
     applyAutoTransferSummary,
     stopAutoQueuePolling,
     scheduleAutoQueuePolling,
     loadAutoTransferQueue,
     retryAutoTransferTask,
     clearAutoTransferHistory,
+    enqueueAutoTransferTargets,
   }
 }
 
@@ -4842,6 +4905,8 @@ const _sfc_main$6 = {
   onlineSearching: { type: Boolean, default: false },
   onlineBatchLabel: { type: String, default: '' },
   batchUploadTargets: { type: Array, default: () => [] },
+  batchMatchTargets: { type: Array, default: () => [] },
+  batchMatchEnqueueing: { type: Boolean, default: false },
   clearing: { type: Boolean, default: false },
   selectedTimelineTargets: { type: Array, default: () => [] },
   timelineFixing: { type: Boolean, default: false },
@@ -4880,6 +4945,7 @@ const _sfc_main$6 = {
   'open-batch-ai-generate',
   'cancel-batch-ai-generate',
   'open-batch-online-search',
+  'batch-match-subtitles',
   'clear-selected-subtitles',
   'fix-selected-detail-timeline',
   'restore-selected-backups',
@@ -4962,7 +5028,7 @@ return (_ctx, _cache) => {
               loading: __props.resolving,
               onClick: _cache[2] || (_cache[2] = $event => (_ctx.$emit('load-targets', __props.selectedMedia, __props.selectedSeason)))
             }, {
-              default: _withCtx$4(() => [...(_cache[12] || (_cache[12] = [
+              default: _withCtx$4(() => [...(_cache[13] || (_cache[13] = [
                 _createTextVNode$4(" 刷新列表 ", -1)
               ]))]),
               _: 1
@@ -5039,7 +5105,7 @@ return (_ctx, _cache) => {
                     loading: __props.aiCancelling,
                     onClick: _cache[7] || (_cache[7] = $event => (_ctx.$emit('cancel-batch-ai-generate')))
                   }, {
-                    default: _withCtx$4(() => [...(_cache[13] || (_cache[13] = [
+                    default: _withCtx$4(() => [...(_cache[14] || (_cache[14] = [
                       _createTextVNode$4(" 取消 AI ", -1)
                     ]))]),
                     _: 1
@@ -5060,13 +5126,27 @@ return (_ctx, _cache) => {
                 _: 1
               }, 8, ["disabled", "loading"]),
               _createVNode$6(_component_VBtn, {
+                class: "batch-match-btn",
+                color: "deep-purple",
+                variant: "flat",
+                "prepend-icon": "mdi-playlist-plus",
+                disabled: !__props.batchMatchTargets.length,
+                loading: __props.batchMatchEnqueueing,
+                onClick: _cache[9] || (_cache[9] = $event => (_ctx.$emit('batch-match-subtitles')))
+              }, {
+                default: _withCtx$4(() => [
+                  _createTextVNode$4(" 批量匹配字幕" + _toDisplayString$4(__props.batchMatchTargets.length ? ` (${__props.batchMatchTargets.length})` : ''), 1)
+                ]),
+                _: 1
+              }, 8, ["disabled", "loading"]),
+              _createVNode$6(_component_VBtn, {
                 color: "error",
                 variant: "tonal",
                 disabled: !__props.selectedTargetIds.length,
                 loading: __props.clearing,
-                onClick: _cache[9] || (_cache[9] = $event => (_ctx.$emit('clear-selected-subtitles')))
+                onClick: _cache[10] || (_cache[10] = $event => (_ctx.$emit('clear-selected-subtitles')))
               }, {
-                default: _withCtx$4(() => [...(_cache[14] || (_cache[14] = [
+                default: _withCtx$4(() => [...(_cache[15] || (_cache[15] = [
                   _createTextVNode$4(" 清空选中外挂字幕 ", -1)
                 ]))]),
                 _: 1
@@ -5077,9 +5157,9 @@ return (_ctx, _cache) => {
                 "prepend-icon": "mdi-timeline-clock",
                 disabled: !__props.selectedTimelineTargets.length || __props.timelineFixing || !__props.timelineAvailable,
                 loading: __props.timelineFixing,
-                onClick: _cache[10] || (_cache[10] = $event => (_ctx.$emit('fix-selected-detail-timeline')))
+                onClick: _cache[11] || (_cache[11] = $event => (_ctx.$emit('fix-selected-detail-timeline')))
               }, {
-                default: _withCtx$4(() => [...(_cache[15] || (_cache[15] = [
+                default: _withCtx$4(() => [...(_cache[16] || (_cache[16] = [
                   _createTextVNode$4(" 批量调轴 ", -1)
                 ]))]),
                 _: 1
@@ -5090,9 +5170,9 @@ return (_ctx, _cache) => {
                 "prepend-icon": "mdi-restore",
                 disabled: !__props.selectedRestorableTargets.length || __props.clearing,
                 loading: __props.clearing,
-                onClick: _cache[11] || (_cache[11] = $event => (_ctx.$emit('restore-selected-backups')))
+                onClick: _cache[12] || (_cache[12] = $event => (_ctx.$emit('restore-selected-backups')))
               }, {
-                default: _withCtx$4(() => [...(_cache[16] || (_cache[16] = [
+                default: _withCtx$4(() => [...(_cache[17] || (_cache[17] = [
                   _createTextVNode$4(" 批量恢复 ", -1)
                 ]))]),
                 _: 1
@@ -5146,7 +5226,7 @@ return (_ctx, _cache) => {
                                   _createVNode$6(_component_VList, { density: "compact" }, {
                                     default: _withCtx$4(() => [
                                       _createVNode$6(_component_VListSubheader, null, {
-                                        default: _withCtx$4(() => [...(_cache[17] || (_cache[17] = [
+                                        default: _withCtx$4(() => [...(_cache[18] || (_cache[18] = [
                                           _createTextVNode$4("已有外挂字幕", -1)
                                         ]))]),
                                         _: 1
@@ -5207,7 +5287,7 @@ return (_ctx, _cache) => {
                         disabled: __props.isTargetActionDisabled(target),
                         onClick: $event => (_ctx.$emit('open-single-upload', target))
                       }, {
-                        default: _withCtx$4(() => [...(_cache[18] || (_cache[18] = [
+                        default: _withCtx$4(() => [...(_cache[19] || (_cache[19] = [
                           _createTextVNode$4(" 单集上传 ", -1)
                         ]))]),
                         _: 1
@@ -5250,7 +5330,7 @@ return (_ctx, _cache) => {
                                           disabled: __props.timelineFixing || !__props.timelineAvailable || __props.isTargetActionDisabled(target) || __props.isStreamTarget(target),
                                           onClick: _withModifiers$1($event => (_ctx.$emit('fix-history-subtitle-timeline', target, subtitle)), ["stop"])
                                         }, {
-                                          default: _withCtx$4(() => [...(_cache[19] || (_cache[19] = [
+                                          default: _withCtx$4(() => [...(_cache[20] || (_cache[20] = [
                                             _createTextVNode$4(" 调轴 ", -1)
                                           ]))]),
                                           _: 1
@@ -5263,7 +5343,7 @@ return (_ctx, _cache) => {
                                           disabled: !subtitle.backup_available || __props.isTargetActionDisabled(target),
                                           onClick: _withModifiers$1($event => (_ctx.$emit('restore-subtitle-backup', target, subtitle)), ["stop"])
                                         }, {
-                                          default: _withCtx$4(() => [...(_cache[20] || (_cache[20] = [
+                                          default: _withCtx$4(() => [...(_cache[21] || (_cache[21] = [
                                             _createTextVNode$4(" 恢复 ", -1)
                                           ]))]),
                                           _: 1
@@ -5276,7 +5356,7 @@ return (_ctx, _cache) => {
                                           disabled: __props.isTargetActionDisabled(target),
                                           onClick: _withModifiers$1($event => (_ctx.$emit('delete-subtitle', target, subtitle)), ["stop"])
                                         }, {
-                                          default: _withCtx$4(() => [...(_cache[21] || (_cache[21] = [
+                                          default: _withCtx$4(() => [...(_cache[22] || (_cache[22] = [
                                             _createTextVNode$4(" 删除 ", -1)
                                           ]))]),
                                           _: 1
@@ -5294,7 +5374,7 @@ return (_ctx, _cache) => {
               : (_openBlock$6(), _createElementBlock$6("div", _hoisted_24, _toDisplayString$4(__props.resolving ? '正在读取本地视频目标...' : '这个资源没有本地视频文件。'), 1)),
             (__props.lastWritten.length)
               ? (_openBlock$6(), _createElementBlock$6("div", _hoisted_25, [
-                  _cache[22] || (_cache[22] = _createElementVNode$6("div", { class: "section-kicker" }, "写入结果", -1)),
+                  _cache[23] || (_cache[23] = _createElementVNode$6("div", { class: "section-kicker" }, "写入结果", -1)),
                   (_openBlock$6(true), _createElementBlock$6(_Fragment$6, null, _renderList$4(__props.lastWritten, (item) => {
                     return (_openBlock$6(), _createElementBlock$6("div", {
                       key: item.output_path,
@@ -5330,7 +5410,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const TargetDetailPanel = /*#__PURE__*/_export_sfc(_sfc_main$6, [['__scopeId',"data-v-7a88134c"]]);
+const TargetDetailPanel = /*#__PURE__*/_export_sfc(_sfc_main$6, [['__scopeId',"data-v-60ca7458"]]);
 
 const {toDisplayString:_toDisplayString$3,createElementVNode:_createElementVNode$5,resolveComponent:_resolveComponent$5,createVNode:_createVNode$5,withCtx:_withCtx$3,createTextVNode:_createTextVNode$3,openBlock:_openBlock$5,createBlock:_createBlock$5,createCommentVNode:_createCommentVNode$5,mergeProps:_mergeProps$2,normalizeClass:_normalizeClass$4,createElementBlock:_createElementBlock$5,renderList:_renderList$3,Fragment:_Fragment$5,withKeys:_withKeys} = await importShared('vue');
 
@@ -5983,7 +6063,7 @@ return (_ctx, _cache) => {
         title: "返回资源列表",
         onClick: _cache[0] || (_cache[0] = $event => (__props.actions.resetSelection()))
       }),
-      _cache[13] || (_cache[13] = _createElementVNode$3("span", null, "海拉鲁字幕大师", -1)),
+      _cache[14] || (_cache[14] = _createElementVNode$3("span", null, "海拉鲁字幕大师", -1)),
       _createVNode$3(_component_VBtn, {
         icon: "mdi-refresh",
         variant: "text",
@@ -6042,7 +6122,7 @@ return (_ctx, _cache) => {
         "prepend-icon": "mdi-cloud-search-outline",
         onClick: _cache[4] || (_cache[4] = $event => (__props.actions.openBatchOnlineSearch()))
       }, {
-        default: _withCtx$1(() => [...(_cache[14] || (_cache[14] = [
+        default: _withCtx$1(() => [...(_cache[15] || (_cache[15] = [
           _createTextVNode$1(" 搜索 ", -1)
         ]))]),
         _: 1
@@ -6058,7 +6138,7 @@ return (_ctx, _cache) => {
             start: "",
             icon: "mdi-upload-file"
           }),
-          _cache[15] || (_cache[15] = _createTextVNode$1(" 上传 ", -1))
+          _cache[16] || (_cache[16] = _createTextVNode$1(" 上传 ", -1))
         ]),
         _: 1
       }, 8, ["disabled"]),
@@ -6071,7 +6151,7 @@ return (_ctx, _cache) => {
     ]),
     _createElementVNode$3("section", _hoisted_11$1, [
       _createElementVNode$3("div", _hoisted_12$1, [
-        _cache[16] || (_cache[16] = _createElementVNode$3("h2", null, "视频目标", -1)),
+        _cache[17] || (_cache[17] = _createElementVNode$3("h2", null, "视频目标", -1)),
         _createElementVNode$3("span", null, _toDisplayString$1(__props.detail.visibleTargets.length), 1)
       ]),
       (__props.detail.resolving && !__props.detail.visibleTargets.length)
@@ -6081,7 +6161,7 @@ return (_ctx, _cache) => {
               size: "22",
               width: "2"
             }),
-            _cache[17] || (_cache[17] = _createTextVNode$1(" 正在读取本地视频目标 ", -1))
+            _cache[18] || (_cache[18] = _createTextVNode$1(" 正在读取本地视频目标 ", -1))
           ]))
         : (!__props.detail.visibleTargets.length)
           ? (_openBlock$3(), _createElementBlock$3("div", _hoisted_14$1, " 当前资源没有本地可写入的视频文件。 "))
@@ -6096,7 +6176,7 @@ return (_ctx, _cache) => {
     ]),
     (__props.detail.lastWritten.length)
       ? (_openBlock$3(), _createElementBlock$3("section", _hoisted_15$1, [
-          _cache[18] || (_cache[18] = _createElementVNode$3("div", { class: "mobile-target-list-head" }, [
+          _cache[19] || (_cache[19] = _createElementVNode$3("div", { class: "mobile-target-list-head" }, [
             _createElementVNode$3("h2", null, "写入结果")
           ], -1)),
           (_openBlock$3(true), _createElementBlock$3(_Fragment$3, null, _renderList$1(__props.detail.lastWritten, (item) => {
@@ -6113,7 +6193,7 @@ return (_ctx, _cache) => {
       : _createCommentVNode$3("", true),
     _createVNode$3(_component_VBottomSheet, {
       modelValue: bulkActionsOpen.value,
-      "onUpdate:modelValue": _cache[12] || (_cache[12] = $event => ((bulkActionsOpen).value = $event)),
+      "onUpdate:modelValue": _cache[13] || (_cache[13] = $event => ((bulkActionsOpen).value = $event)),
       inset: ""
     }, {
       default: _withCtx$1(() => [
@@ -6123,7 +6203,7 @@ return (_ctx, _cache) => {
         }, {
           default: _withCtx$1(() => [
             _createVNode$3(_component_VCardTitle, null, {
-              default: _withCtx$1(() => [...(_cache[19] || (_cache[19] = [
+              default: _withCtx$1(() => [...(_cache[20] || (_cache[20] = [
                 _createTextVNode$1("更多批量操作", -1)
               ]))]),
               _: 1
@@ -6155,7 +6235,7 @@ return (_ctx, _cache) => {
                       loading: __props.detail.aiCancelling,
                       onClick: _cache[8] || (_cache[8] = $event => {__props.actions.cancelBatchAiGenerate(); bulkActionsOpen.value = false;})
                     }, {
-                      default: _withCtx$1(() => [...(_cache[20] || (_cache[20] = [
+                      default: _withCtx$1(() => [...(_cache[21] || (_cache[21] = [
                         _createTextVNode$1(" 取消 AI 任务 ", -1)
                       ]))]),
                       _: 1
@@ -6169,7 +6249,7 @@ return (_ctx, _cache) => {
                   loading: __props.detail.clearing,
                   onClick: _cache[9] || (_cache[9] = $event => {__props.actions.clearSelectedSubtitles(); bulkActionsOpen.value = false;})
                 }, {
-                  default: _withCtx$1(() => [...(_cache[21] || (_cache[21] = [
+                  default: _withCtx$1(() => [...(_cache[22] || (_cache[22] = [
                     _createTextVNode$1(" 清空选中外挂字幕 ", -1)
                   ]))]),
                   _: 1
@@ -6182,7 +6262,7 @@ return (_ctx, _cache) => {
                   loading: __props.detail.timelineFixing,
                   onClick: _cache[10] || (_cache[10] = $event => {__props.actions.fixSelectedDetailTimeline(); bulkActionsOpen.value = false;})
                 }, {
-                  default: _withCtx$1(() => [...(_cache[22] || (_cache[22] = [
+                  default: _withCtx$1(() => [...(_cache[23] || (_cache[23] = [
                     _createTextVNode$1(" 批量调轴 ", -1)
                   ]))]),
                   _: 1
@@ -6195,9 +6275,23 @@ return (_ctx, _cache) => {
                   loading: __props.detail.clearing,
                   onClick: _cache[11] || (_cache[11] = $event => {__props.actions.restoreSelectedBackups(); bulkActionsOpen.value = false;})
                 }, {
-                  default: _withCtx$1(() => [...(_cache[23] || (_cache[23] = [
+                  default: _withCtx$1(() => [...(_cache[24] || (_cache[24] = [
                     _createTextVNode$1(" 恢复调轴前备份 ", -1)
                   ]))]),
+                  _: 1
+                }, 8, ["disabled", "loading"]),
+                _createVNode$3(_component_VBtn, {
+                  block: "",
+                  color: "deep-purple",
+                  variant: "flat",
+                  "prepend-icon": "mdi-playlist-plus",
+                  disabled: !__props.detail.batchMatchTargets.length,
+                  loading: __props.detail.autoQueueEnqueueing,
+                  onClick: _cache[12] || (_cache[12] = $event => {__props.actions.enqueueAutoTransferTargets(); bulkActionsOpen.value = false;})
+                }, {
+                  default: _withCtx$1(() => [
+                    _createTextVNode$1(" 批量匹配字幕" + _toDisplayString$1(__props.detail.batchMatchTargets.length ? ` (${__props.detail.batchMatchTargets.length})` : ''), 1)
+                  ]),
                   _: 1
                 }, 8, ["disabled", "loading"])
               ]),
@@ -6214,7 +6308,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const MobileSubtitleDetail = /*#__PURE__*/_export_sfc(_sfc_main$3, [['__scopeId',"data-v-7a097863"]]);
+const MobileSubtitleDetail = /*#__PURE__*/_export_sfc(_sfc_main$3, [['__scopeId',"data-v-a4c12c59"]]);
 
 const {createElementVNode:_createElementVNode$2,toDisplayString:_toDisplayString,normalizeClass:_normalizeClass$1,createTextVNode:_createTextVNode,openBlock:_openBlock$2,createElementBlock:_createElementBlock$2,createCommentVNode:_createCommentVNode$2,resolveComponent:_resolveComponent$2,createVNode:_createVNode$2,renderList:_renderList,Fragment:_Fragment$2,withCtx:_withCtx,createBlock:_createBlock$2,withModifiers:_withModifiers} = await importShared('vue');
 
@@ -6785,21 +6879,26 @@ const {
   autoTransferQueue,
   autoQueueDialog,
   autoQueueMutating,
+  autoQueueEnqueueing,
   autoQueueActionTaskId,
   autoQueueSummary,
   autoQueueTasks,
   autoQueueSummaryText,
+  batchMatchTargets,
   applyAutoTransferSummary,
   stopAutoQueuePolling,
   loadAutoTransferQueue,
   retryAutoTransferTask,
   clearAutoTransferHistory,
+  enqueueAutoTransferTargets,
 } = useAutoTransferQueue({
   pluginApi,
   unwrapResponse,
   errorMessage,
   error,
   message,
+  selectedTargets,
+  isLocked,
 });
 
 const {
@@ -7348,6 +7447,8 @@ const mobileView = reactive({
     timelineMetaItems,
     timelineResultForTarget,
     timelineResultText,
+    autoQueueEnqueueing,
+    batchMatchTargets,
   },
   history: {
     panelProps: {
@@ -7432,6 +7533,7 @@ const mobileActions = {
     clearSelectedSubtitles,
     fixSelectedDetailTimeline,
     restoreSelectedBackups,
+    enqueueAutoTransferTargets,
     toggleTarget,
     toggleDetailExpanded,
     openSingleAiGenerate,
@@ -7634,6 +7736,8 @@ return (_ctx, _cache) => {
                   "online-searching": _unref(onlineSearching),
                   "online-batch-label": _unref(onlineBatchLabel),
                   "batch-upload-targets": _unref(batchUploadTargets),
+                  "batch-match-targets": _unref(batchMatchTargets),
+                  "batch-match-enqueueing": _unref(autoQueueEnqueueing),
                   clearing: clearing.value,
                   "selected-timeline-targets": _unref(selectedTimelineTargets),
                   "timeline-fixing": _unref(timelineFixing),
@@ -7670,6 +7774,7 @@ return (_ctx, _cache) => {
                   onOpenBatchAiGenerate: _unref(openBatchAiGenerate),
                   onCancelBatchAiGenerate: _unref(cancelBatchAiGenerate),
                   onOpenBatchOnlineSearch: _unref(openBatchOnlineSearch),
+                  onBatchMatchSubtitles: _unref(enqueueAutoTransferTargets),
                   onClearSelectedSubtitles: clearSelectedSubtitles,
                   onFixSelectedDetailTimeline: _unref(fixSelectedDetailTimeline),
                   onRestoreSelectedBackups: restoreSelectedBackups,
@@ -7682,7 +7787,7 @@ return (_ctx, _cache) => {
                   onFixHistorySubtitleTimeline: _unref(fixHistorySubtitleTimeline),
                   onRestoreSubtitleBackup: restoreSubtitleBackup,
                   onDeleteSubtitle: deleteSubtitle
-                }, null, 8, ["selected-media", "selected-season", "selected-targets", "selected-target-ids", "locked-target-ids", "visible-targets", "season-cards", "resolving", "ai-enabled", "ai-available", "ai-has-active-tasks", "ai-tasks-loading", "ai-summary-text", "ai-status", "all-visible-selected", "unlocked-visible-targets", "ai-capable-batch-targets", "ai-submitting", "ai-batch-label", "ai-batch-cancel-targets", "ai-cancelling", "online-searching", "online-batch-label", "batch-upload-targets", "clearing", "selected-timeline-targets", "timeline-fixing", "timeline-available", "selected-restorable-targets", "last-written", "poster-image-src", "media-label", "format-media-type", "compact-target-name", "format-bytes", "is-locked", "is-target-action-disabled", "is-stream-target", "detail-expanded", "ai-task-for-target", "ai-task-status-class", "ai-task-icon", "ai-task-color", "ai-task-title", "ai-status-text", "timeline-meta-items", "timeline-task-for-target", "timeline-result-text", "onResetSelection", "onMarkPosterFailed", "onLoadTargets", "onChangeSeason", "onOpenAiTaskDialog", "onToggleSelectAll", "onOpenBatchUpload", "onOpenBatchAiGenerate", "onCancelBatchAiGenerate", "onOpenBatchOnlineSearch", "onFixSelectedDetailTimeline", "onToggleTarget", "onToggleDetailExpanded", "onOpenSingleAiGenerate", "onOpenSingleOnlineSearch", "onToggleLock", "onOpenSingleUpload", "onFixHistorySubtitleTimeline"])
+                }, null, 8, ["selected-media", "selected-season", "selected-targets", "selected-target-ids", "locked-target-ids", "visible-targets", "season-cards", "resolving", "ai-enabled", "ai-available", "ai-has-active-tasks", "ai-tasks-loading", "ai-summary-text", "ai-status", "all-visible-selected", "unlocked-visible-targets", "ai-capable-batch-targets", "ai-submitting", "ai-batch-label", "ai-batch-cancel-targets", "ai-cancelling", "online-searching", "online-batch-label", "batch-upload-targets", "batch-match-targets", "batch-match-enqueueing", "clearing", "selected-timeline-targets", "timeline-fixing", "timeline-available", "selected-restorable-targets", "last-written", "poster-image-src", "media-label", "format-media-type", "compact-target-name", "format-bytes", "is-locked", "is-target-action-disabled", "is-stream-target", "detail-expanded", "ai-task-for-target", "ai-task-status-class", "ai-task-icon", "ai-task-color", "ai-task-title", "ai-status-text", "timeline-meta-items", "timeline-task-for-target", "timeline-result-text", "onResetSelection", "onMarkPosterFailed", "onLoadTargets", "onChangeSeason", "onOpenAiTaskDialog", "onToggleSelectAll", "onOpenBatchUpload", "onOpenBatchAiGenerate", "onCancelBatchAiGenerate", "onOpenBatchOnlineSearch", "onBatchMatchSubtitles", "onFixSelectedDetailTimeline", "onToggleTarget", "onToggleDetailExpanded", "onOpenSingleAiGenerate", "onOpenSingleOnlineSearch", "onToggleLock", "onOpenSingleUpload", "onFixHistorySubtitleTimeline"])
               ]))
         ])),
     _createVNode(AutoTransferQueueDialog, {
@@ -7836,6 +7941,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-f7431912"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-f126cc43"]]);
 
 export { AppPage as default };

@@ -22,16 +22,20 @@ export function useAutoTransferQueue({
   errorMessage,
   error,
   message,
+  selectedTargets,
+  isLocked,
 }) {
   const autoTransferQueue = ref(createEmptyAutoTransferQueue())
   const autoQueueDialog = ref(false)
   const autoQueueMutating = ref(false)
+  const autoQueueEnqueueing = ref(false)
   const autoQueueActionTaskId = ref('')
   let autoQueueTimer = null
 
   const autoQueueSummary = computed(() => autoTransferQueue.value?.summary || {})
   const autoQueueTasks = computed(() => autoTransferQueue.value?.tasks || [])
   const autoQueueActive = computed(() => Number(autoQueueSummary.value.active || 0) > 0)
+  const batchMatchTargets = computed(() => (selectedTargets?.value || []).filter(item => !isLocked?.(item.id)))
   const autoQueueSummaryText = computed(() => {
     const parts = []
     if (autoQueueSummary.value.in_progress) parts.push(`${autoQueueSummary.value.in_progress} 个处理中`)
@@ -110,20 +114,76 @@ export function useAutoTransferQueue({
     }
   }
 
+  function buildAutoTransferTargetPayload(target) {
+    return {
+      id: target.id,
+      path: target.path,
+      basename: target.basename,
+      label: target.label,
+      media_type: target.media_type,
+      title: target.title,
+      tmdb_id: target.tmdb_id,
+      douban_id: target.douban_id,
+      season: target.season,
+      episode: target.episode,
+      year: target.year,
+      library_name: target.library_name,
+      relative_path: target.relative_path,
+      storage: target.storage,
+      writable: target.writable,
+      original_language: target.original_language,
+      origin_country: target.origin_country,
+      production_countries: target.production_countries,
+      original_title: target.original_title,
+      original_name: target.original_name,
+      en_title: target.en_title,
+      tmdb_aliases: target.tmdb_aliases,
+    }
+  }
+
+  async function enqueueAutoTransferTargets() {
+    const usableTargets = batchMatchTargets.value
+    if (!usableTargets.length || autoQueueEnqueueing.value) return
+    const confirmed = window.confirm(
+      `确认把选中的 ${usableTargets.length} 个目标重新提交到自动处理队列？\n\n` +
+      '将触发在线搜索 → 下载 → 写盘全流程，会对目标目录写入字幕文件，且该操作不可撤销。\n' +
+      '已在队列中的目标会自动跳过。',
+    )
+    if (!confirmed) return
+    autoQueueEnqueueing.value = true
+    error.value = ''
+    message.value = ''
+    try {
+      const response = await pluginApi.value.enqueueAutoTransferTargets({
+        targets: usableTargets.map(buildAutoTransferTargetPayload),
+      })
+      autoTransferQueue.value = unwrapResponse(response) || autoTransferQueue.value
+      message.value = response?.message || `已提交 ${usableTargets.length} 个目标到自动处理队列`
+      scheduleAutoQueuePolling()
+    } catch (err) {
+      error.value = errorMessage(err, '批量匹配字幕失败')
+    } finally {
+      autoQueueEnqueueing.value = false
+    }
+  }
+
   return {
     autoTransferQueue,
     autoQueueDialog,
     autoQueueMutating,
+    autoQueueEnqueueing,
     autoQueueActionTaskId,
     autoQueueSummary,
     autoQueueTasks,
     autoQueueActive,
     autoQueueSummaryText,
+    batchMatchTargets,
     applyAutoTransferSummary,
     stopAutoQueuePolling,
     scheduleAutoQueuePolling,
     loadAutoTransferQueue,
     retryAutoTransferTask,
     clearAutoTransferHistory,
+    enqueueAutoTransferTargets,
   }
 }

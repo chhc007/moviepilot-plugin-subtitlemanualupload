@@ -27,6 +27,8 @@ defineProps({
   onlineSearching: { type: Boolean, default: false },
   onlineBatchLabel: { type: String, default: '' },
   batchUploadTargets: { type: Array, default: () => [] },
+  batchMatchTargets: { type: Array, default: () => [] },
+  batchMatchEnqueueing: { type: Boolean, default: false },
   clearing: { type: Boolean, default: false },
   selectedTimelineTargets: { type: Array, default: () => [] },
   timelineFixing: { type: Boolean, default: false },
@@ -66,6 +68,7 @@ defineEmits([
   'open-batch-ai-generate',
   'cancel-batch-ai-generate',
   'open-batch-online-search',
+  'batch-match-subtitles',
   'clear-selected-subtitles',
   'fix-selected-detail-timeline',
   'restore-selected-backups',
@@ -191,6 +194,17 @@ defineExpose({
             @click="$emit('open-batch-online-search')"
           >
             {{ onlineBatchLabel }}
+          </VBtn>
+          <VBtn
+            class="batch-match-btn"
+            color="deep-purple"
+            variant="flat"
+            prepend-icon="mdi-playlist-plus"
+            :disabled="!batchMatchTargets.length"
+            :loading="batchMatchEnqueueing"
+            @click="$emit('batch-match-subtitles')"
+          >
+            批量匹配字幕{{ batchMatchTargets.length ? ` (${batchMatchTargets.length})` : '' }}
           </VBtn>
           <VBtn
             color="error"
