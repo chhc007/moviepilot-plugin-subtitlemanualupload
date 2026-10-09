@@ -45,6 +45,9 @@ const localConfig = ref({
   opensubtitles_username: '',
   opensubtitles_password: '',
   ai_link_enabled: true,
+  danmu_link_enabled: false,
+  danmu_link_overwrite: true,
+  danmu_link_async: true,
   rar_dependency_mode: 'none',
   rar_tool_path: '/usr/bin/unar',
 })
@@ -204,6 +207,9 @@ function normalizeConfig(input) {
     opensubtitles_username: opensubtitlesUsername,
     opensubtitles_password: opensubtitlesPassword,
     ai_link_enabled: input?.ai_link_enabled !== false,
+    danmu_link_enabled: input?.danmu_link_enabled === true,
+    danmu_link_overwrite: input?.danmu_link_overwrite !== false,
+    danmu_link_async: input?.danmu_link_async !== false,
     rar_dependency_mode: ['none', 'container_install', 'mapped_binary'].includes(input?.rar_dependency_mode)
       ? input.rar_dependency_mode
       : 'none',
@@ -279,6 +285,29 @@ onMounted(() => {
               label="启用 AI 字幕联动"
               color="warning"
               hide-details
+            />
+            <VSwitch
+              v-model="localConfig.danmu_link_enabled"
+              label="启用弹幕刮削联动"
+              color="warning"
+              hint="字幕写入完成后自动调用弹幕刮削插件，把弹幕合并进字幕。"
+              persistent-hint
+            />
+            <VSwitch
+              v-if="localConfig.danmu_link_enabled"
+              v-model="localConfig.danmu_link_async"
+              label="异步触发弹幕刮削"
+              color="info"
+              hint="不阻塞字幕写入返回；刮削较慢时建议保持开启。"
+              persistent-hint
+            />
+            <VSwitch
+              v-if="localConfig.danmu_link_enabled"
+              v-model="localConfig.danmu_link_overwrite"
+              label="重新生成已有弹幕合并字幕"
+              color="success"
+              hint="关闭后，已存在 .withDanmu.ass 的视频将跳过刮削。"
+              persistent-hint
             />
             <VSwitch
               v-model="localConfig.traditional_to_simplified"

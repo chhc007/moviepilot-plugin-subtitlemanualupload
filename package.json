@@ -3,7 +3,7 @@
     "name": "海拉鲁字幕大师SHIELD专用版",
     "description": "海拉鲁字幕大师SHIELD专用版，脱胎自 ChineseSubFinder；支持手动上传字幕、ZIP/RAR/7Z，选择本地电影/剧集后自动匹配并按媒体文件名落盘；网盘挂载暂不保证完整可用性。定制维护版由 chhc007 基于 ifsherlock 官方版维护，官方更新时合并代码。",
     "labels": "字幕,ChineseSubFinder,媒体库,整理",
-    "version": "0.1.93",
+    "version": "0.1.94",
     "icon": "https://raw.githubusercontent.com/ifsherlock/MoviePilot-Plugins/main/icons/hyrule-subtitle-master.png",
     "author": "ifsherlock, chhc007",
     "author_url": "https://github.com/chhc007",
@@ -13,6 +13,7 @@
     "v3": false,
     "release": true,
     "history": {
+      "v0.1.94": "新增与弹幕刮削插件（Danmu）的联动：①配置页新增『启用弹幕刮削联动』开关（默认关闭，零影响现有行为），可设置异步触发与是否重新生成已有合并字幕；②字幕落盘完成后自动调用弹幕刮削，把弹幕合并进字幕（手动上传/智能调轴/自动入库三条路径统一在 write_operations_to_disk 出口触发，字幕已落盘后才刮削，弹幕侧自动扫到新字幕并生成 .withDanmu.ass）；③循环防护——外挂字幕识别与目录监控排除弹幕产物（.danmu.ass / .withDanmu.ass），避免合并结果被当成外挂字幕造成弹幕套弹幕；④弹幕插件未安装/未启用时返回明确提示，刮削异常只记日志不影响字幕流程；⑤状态接口新增 danmu_link 状态。",
       "v0.1.93": "①新增『迅雷影音』在线字幕源（无需 API Key）——复刻迅雷影音客户端字幕接口与 CID 精确匹配：有本地视频文件时按 SHA1 采样哈希算出 CID，与结果中 CID 完全一致的条目优先返回并加权；下载后自动将 GBK/Big5 字幕转为 UTF-8 避免播放器乱码；②移除已失效的 Zimuku 源——字幕库全系域名（zimuku.la/.org/.net/.pw 等）已变为域名停放页，不再可用，从可选源、默认源、自动搜索白名单与界面中一并摘除（provider 代码保留，便于日后上游恢复时重新接线）",
       "v0.1.92": "SHIELD 专用版定制：①修复日漫/季番搜不到字幕——搜索关键词追加纯标题变体（不带季集号），SubHD 等站不再因 S01E01 后缀返回 0 结果；②OpenSubtitles 查询计划改为 IMDb ID 优先、TMDB ID 降为兜底（修复 TMDB 参数映射错误返回错误剧集字幕的问题），并支持点号/数字集数格式（Konosuba.01.BDRip）避免季集误判；③修复带全角感叹号剧名（为美好的世界献上祝福！）被别名过滤导致身份校验全失败的问题；④ASSRT 将 videoname 并入集数识别，支持整季/合集字幕；⑤Zimuku 默认域名更新为 zimuku.la（zmk.pw 已失效，LEGACY 保留旧域兜底）；⑥插件显示名升级为『海拉鲁字幕大师SHIELD专用版』（插件 ID SubtitleManualUpload 不变，配置与联动兼容）",
       "v0.1.91": "插件设置页新增使用教程快捷链接，可直接打开仓库详细文档",

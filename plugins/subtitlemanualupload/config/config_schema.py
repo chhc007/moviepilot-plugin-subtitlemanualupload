@@ -70,6 +70,9 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "opensubtitles_username": "",
     "opensubtitles_password": "",
     "ai_link_enabled": True,
+    "danmu_link_enabled": False,
+    "danmu_link_overwrite": True,
+    "danmu_link_async": True,
 }
 
 
@@ -254,6 +257,9 @@ def normalize_plugin_config(
         "opensubtitles_username": opensubtitles_username,
         "opensubtitles_password": normalize_text(raw_config.get("opensubtitles_password")),
         "ai_link_enabled": bool(raw_config.get("ai_link_enabled", True)),
+        "danmu_link_enabled": bool(raw_config.get("danmu_link_enabled", False)),
+        "danmu_link_overwrite": bool(raw_config.get("danmu_link_overwrite", True)),
+        "danmu_link_async": bool(raw_config.get("danmu_link_async", True)),
         "traditional_to_simplified": bool(raw_config.get("traditional_to_simplified", False)),
         "auto_search_on_transfer": bool(raw_config.get("auto_search_on_transfer", False)),
         "auto_skip_chinese_media_on_transfer": bool(raw_config.get("auto_skip_chinese_media_on_transfer", True)),

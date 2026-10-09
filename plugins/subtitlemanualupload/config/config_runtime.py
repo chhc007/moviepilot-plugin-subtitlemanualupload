@@ -21,6 +21,9 @@ RUNTIME_CONFIG_FIELDS = (
     ("_opensubtitles_username", "opensubtitles_username"),
     ("_opensubtitles_password", "opensubtitles_password"),
     ("_ai_link_enabled", "ai_link_enabled"),
+    ("_danmu_link_enabled", "danmu_link_enabled"),
+    ("_danmu_link_overwrite", "danmu_link_overwrite"),
+    ("_danmu_link_async", "danmu_link_async"),
     ("_traditional_to_simplified", "traditional_to_simplified"),
     ("_auto_search_on_transfer", "auto_search_on_transfer"),
     ("_auto_skip_chinese_media_on_transfer", "auto_skip_chinese_media_on_transfer"),
@@ -97,6 +100,8 @@ def reset_runtime_state(owner: Any) -> None:
     owner._match_history_refresh_lock = threading.Lock()
     owner._match_history_build_lock = threading.Lock()
     owner._timeline_tasks = OrderedDict()
+    owner._danmu_link_recent = {}
+    owner._danmu_link_lock = threading.Lock()
     owner._transfer_auto_recent = {}
     owner._transfer_auto_lock = threading.Lock()
     owner._auto_transfer_tasks = OrderedDict()
@@ -144,6 +149,9 @@ def build_save_config_payload(owner: Any) -> dict[str, Any]:
         "opensubtitles_username": owner._opensubtitles_username,
         "opensubtitles_password": owner._opensubtitles_password,
         "ai_link_enabled": owner._ai_link_enabled,
+        "danmu_link_enabled": owner._danmu_link_enabled,
+        "danmu_link_overwrite": owner._danmu_link_overwrite,
+        "danmu_link_async": owner._danmu_link_async,
         "auto_multi_subtitle_mode": owner._auto_multi_subtitle_mode,
         "auto_subtitle_language_priority": list(owner._auto_subtitle_language_priority),
         "auto_subtitle_format_priority": list(owner._auto_subtitle_format_priority),
