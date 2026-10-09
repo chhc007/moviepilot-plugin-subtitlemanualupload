@@ -125,7 +125,22 @@ class StatusApi:
         entries = [entry for item in targets if (entry := resolver.entry_from_target(item))]
         if not entries:
             raise HTTPException(status_code=400, detail="没有可提交的有效目标")
-        owner.services.local_media_catalog().merge_local_entries_cache(entries)
+        # 回填展示元数据：target 不携带 poster/date，从现有缓存按 media_key 找回，
+        # 仅填补新条目里的空字段，绝不覆盖已有值（否则会清掉封面并让条目排到最后）。
+        catalog = owner.services.local_media_catalog()
+        existing = {
+            entry.get("media_key"): entry
+            for entry in catalog.entries()
+            if isinstance(entry, dict) and entry.get("media_key")
+        }
+        for entry in entries:
+            old = existing.get(entry.get("media_key"))
+            if not old:
+                continue
+            for field in ("poster_url", "poster_thumb_url", "date", "library_name"):
+                if not entry.get(field) and old.get(field):
+                    entry[field] = old[field]
+        catalog.merge_local_entries_cache(entries)
         service = owner.services.auto_transfer()
         queued, skipped = service.enqueue_transfer_auto_entries(entries)
         message = f"已提交 {queued} 个目标到自动处理队列"

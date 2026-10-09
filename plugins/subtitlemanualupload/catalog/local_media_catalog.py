@@ -379,6 +379,14 @@ class LocalMediaCatalog:
             "changed_paths": sorted(changed_paths),
         }
 
+    def entries(self) -> List[Dict[str, Any]]:
+        """返回当前内存缓存里的全部条目（只读快照，供回填展示元数据用）。"""
+        return [
+            entry
+            for entry in (self._owner._local_entries_cache or {}).get("entries") or []
+            if isinstance(entry, dict)
+        ]
+
     def cache_status(self) -> Dict[str, Any]:
         owner = self._owner
         cache = owner._local_entries_cache or {}

@@ -409,6 +409,10 @@ class MediaTargetResolver:
             "year": entry.get("year", ""),
             "library_name": entry.get("library_name"),
             "relative_path": entry.get("relative_path"),
+            # 透传展示元数据，保证 target↔entry 往返对称（否则 entry_from_target 会丢封面/时间戳）
+            "poster_url": entry.get("poster_url"),
+            "poster_thumb_url": entry.get("poster_thumb_url"),
+            "date": entry.get("date"),
             "original_language": entry.get("original_language"),
             "origin_country": entry.get("origin_country"),
             "production_countries": entry.get("production_countries"),
@@ -451,6 +455,8 @@ class MediaTargetResolver:
             or basename
             or filename
         )
+        library_name = self._normalize_text(target.get("library_name")) or "MoviePilot 媒体库"
+        date = self._normalize_text(target.get("date")) or datetime.now().isoformat(timespec="seconds")
         return {
             "id": target.get("id"),
             "origin": "transfer_history",
@@ -466,10 +472,14 @@ class MediaTargetResolver:
             "season": season,
             "episode": episode,
             "year": year,
-            "library_name": target.get("library_name"),
+            "library_name": library_name,
             "relative_path": target.get("relative_path"),
             "storage": target.get("storage", "local"),
             "writable": target.get("writable", True),
+            # 透传展示元数据（target_from_entry 对称输出；缺失时补默认，避免 merge 覆盖原条目）
+            "poster_url": target.get("poster_url"),
+            "poster_thumb_url": target.get("poster_thumb_url"),
+            "date": date,
             # 透传识别相关字段（自动搜索关键词要用）
             "original_language": target.get("original_language"),
             "origin_country": target.get("origin_country"),
