@@ -3,7 +3,7 @@
     "name": "海拉鲁字幕大师SHIELD专用版",
     "description": "海拉鲁字幕大师SHIELD专用版，脱胎自 ChineseSubFinder；支持手动上传字幕、ZIP/RAR/7Z，选择本地电影/剧集后自动匹配并按媒体文件名落盘；网盘挂载暂不保证完整可用性。定制维护版由 chhc007 基于 ifsherlock 官方版维护，官方更新时合并代码。",
     "labels": "字幕,ChineseSubFinder,媒体库,整理",
-    "version": "0.1.96",
+    "version": "0.1.97",
     "icon": "https://raw.githubusercontent.com/ifsherlock/MoviePilot-Plugins/main/icons/hyrule-subtitle-master.png",
     "author": "ifsherlock, chhc007",
     "author_url": "https://github.com/chhc007",
@@ -13,6 +13,7 @@
     "v3": false,
     "release": true,
     "history": {
+      "v0.1.97": "修复「已有中文字幕时弹幕联动也不触发」的联动缺陷：视频已有中文字幕（内嵌或外挂）时海拉鲁跳过字幕下载，而弹幕联动原先只挂在 write_operations_to_disk() 落盘出口、用 touched_videos 触发——跳过下载不写盘即无 touched_videos，导致该集漏刮弹幕（实测 2026-10-10 那批 10 集仅 written 的 2 集生成弹幕，8 集 skipped 全漏）。现按方案 A 让字幕流程处理完毕（无论 written 还是 skipped）后都触发弹幕联动：auto_transfer/auto_transfer_processor.py 的 search_and_write_entry() 与 process_entry() 两处「目标已有中文字幕」跳过分支，在 return 前调用新增薄封装 _trigger_danmu_link_for_entry()——先判 _danmu_link_enabled，取 entry path（_normalize_text）后调 owner.services.danmu_bridge().trigger_for_videos([path])，复用 DanmuBridge 已内置的开关判断/插件定位/90s 去重/overwrite 检查/异常吞掉，按 _danmu_link_async 分派同步或 daemon 线程（与写盘路径一致），全程 try/except 只记 warning 绝不影响字幕流程。弹幕与字幕解耦后三种场景均能拿到 .withDanmu.ass：无字幕→下载后合并、有内嵌中文→提取内嵌后合并、有外挂中文→直接合并。只改海拉鲁侧，弹幕插件零改动，v0.1.96 调轴三档行为不变。",
       "v0.1.96": "修复两个问题：①批量匹配字幕导致媒体库条目封面丢失且排序靠后（v0.1.95 引入的缺陷）——根因是 entry_from_target() 产出的 entry 缺 poster_url/poster_thumb_url/date 三字段，merge 时用空值覆盖了原条目；现让 target_from_entry/entry_from_target 双向透传这三字段（date 缺省补当前时间、library_name 空时回退默认），并在 POST /auto_transfer_queue/enqueue 合并缓存前按 media_key 用现有缓存回填空字段（不覆盖已有值）；已受影响的《非自然死亡》10 条缓存经插件自身刷新重建后封面与时间戳恢复。②自动入库智能调轴新增开关『自动入库智能调轴』(auto_transfer_timeline_mode，三档)——degrade（默认，调轴但低可信时降级写入未调轴原字幕，不再整批失败）/ off（不调轴直接写入原字幕）/ strict（保持上游行为，低可信拒绝写入并标失败）；修复前硬编码 fix_timeline=True 导致低可信时整批 409、字幕完全写不进去；手动上传/单集匹配行为不变。",
       "v0.1.95": "新增「批量匹配字幕」：①本地资源页勾选剧集后，桌面端工具栏与移动端「更多批量操作」均新增「批量匹配字幕」按钮，一键把选中的集重新提交到自动入库队列（auto_transfer），走在线搜索→下载→写盘全流程，免去逐集手动匹配；②二次确认弹窗明确告知会触发在线搜索+下载+写盘且不可撤销；③后端新增 POST /auto_transfer_queue/enqueue（与按 task_id 重试的 retry 语义区分）与 target→entry 转换 entry_from_target()（与 target_from_entry 对称，label→target_label 字段映射），入队前自动合并本地媒体缓存、复用队列既有去重与文件校验，返回 queued/skipped 计数与队列快照；④已锁定目标自动排除，已在队列中的目标自动跳过。",
       "v0.1.94": "新增与弹幕刮削插件（Danmu）的联动：①配置页新增『启用弹幕刮削联动』开关（默认关闭，零影响现有行为），可设置异步触发与是否重新生成已有合并字幕；②字幕落盘完成后自动调用弹幕刮削，把弹幕合并进字幕（手动上传/智能调轴/自动入库三条路径统一在 write_operations_to_disk 出口触发，字幕已落盘后才刮削，弹幕侧自动扫到新字幕并生成 .withDanmu.ass）；③循环防护——外挂字幕识别与目录监控排除弹幕产物（.danmu.ass / .withDanmu.ass），避免合并结果被当成外挂字幕造成弹幕套弹幕；④弹幕插件未安装/未启用时返回明确提示，刮削异常只记日志不影响字幕流程；⑤状态接口新增 danmu_link 状态。",

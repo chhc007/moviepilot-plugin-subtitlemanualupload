@@ -8,6 +8,14 @@ MoviePilot V2 字幕管理插件，脱胎自 [ChineseSubFinder](https://github.c
 
 详细配置、额外 STRM 实时监控和字幕写入说明见：[功能使用教学](../../docs/SubtitleManualUpload功能使用教学.md)。
 
+## v0.1.97 更新
+
+- **修复「已有中文字幕时弹幕联动也不触发」**（弹幕与字幕解耦）：
+  - 缺陷：视频已有中文字幕（内嵌或外挂）时，海拉鲁跳过字幕下载，弹幕联动也不触发 → 该集没有弹幕。
+  - 根因：弹幕联动原先只挂在 `write_operations_to_disk()`（字幕落盘出口），用 `touched_videos` 触发；跳过下载不写盘 → 无 `touched_videos` → 联动不触发。
+  - 修复（方案 A）：字幕流程处理完毕（无论 `written` 还是 `skipped`）后都触发弹幕联动——`auto_transfer/auto_transfer_processor.py` 的 `search_and_write_entry()` 与 `process_entry()` 两处「目标已有中文字幕」跳过分支，在 `return` 前调用新增薄封装 `_trigger_danmu_link_for_entry()`，复用 `DanmuBridge.trigger_for_videos()` 已内置的开关判断 / 插件定位 / 90s 去重 / overwrite 检查 / 异常吞掉；按 `_danmu_link_async` 分派同步或后台线程，异常只记 warning 绝不影响字幕流程。
+  - 闭环：无字幕→下载后合并；有内嵌中文字幕→跳过下载但触发联动（Danmu 提取内嵌）→合并；有外挂中文字幕→跳过下载但触发联动→直接合并。三种场景均能拿到 `.withDanmu.ass`。
+
 ## v0.1.96 更新
 
 - **修复「批量匹配字幕」导致媒体库条目封面丢失 + 排序靠后**（v0.1.95 引入的缺陷）：
