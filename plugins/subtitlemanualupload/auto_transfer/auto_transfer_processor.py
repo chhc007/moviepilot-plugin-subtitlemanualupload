@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 import shutil
+import threading
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from ..online.online_subtitle import build_search_keywords
@@ -208,6 +209,8 @@ class AutoTransferProcessor:
     def search_and_write_entry(self, entry: Dict[str, Any]) -> Dict[str, Any]:
         target = self._collaborators.target_from_entry(entry)
         if self._collaborators.auto_target_has_chinese_subtitle(entry, target):
+            # 已有中文字幕 → 跳过字幕下载；弹幕与字幕相互独立，仍需触发弹幕联动
+            self._trigger_danmu_link_for_entry(entry)
             return {"status": "skipped", "reason": "目标已有中文字幕", "target": target.get("label")}
         if target.get("has_subtitle"):
             self._logger.info(
@@ -215,6 +218,42 @@ class AutoTransferProcessor:
                 target.get("label"),
             )
         return self.search_write_subtitle(entry, target)
+
+    def _trigger_danmu_link_for_entry(self, entry: Dict[str, Any]) -> None:
+        """字幕流程跳过（目标已有中文字幕）时仍触发弹幕联动。
+
+        弹幕与字幕相互独立，不应因「字幕已存在」而漏刮弹幕。复用
+        ``DanmuBridge.trigger_for_videos()`` 已内置的开关判断、插件定位、
+        90s 去重、overwrite 检查与异常吞掉；本方法只负责取 path 并按
+        ``_danmu_link_async`` 分派同步/异步（与写盘路径保持一致），
+        任何异常只记 warning，绝不影响字幕流程返回。
+        """
+        owner = self._owner
+        try:
+            if not getattr(owner, "_danmu_link_enabled", False):
+                return
+            path = owner._normalize_text(entry.get("path"))
+            if not path:
+                return
+            bridge = owner.services.danmu_bridge()
+        except Exception as exc:
+            self._logger.warning("[SubtitleManualUpload] 弹幕联动（跳过分支）初始化失败: %s", exc)
+            return
+
+        def _run() -> None:
+            try:
+                bridge.trigger_for_videos([path])
+            except Exception as exc:
+                self._logger.warning("[SubtitleManualUpload] 弹幕联动（跳过分支）异常: %s", exc)
+
+        if bool(getattr(owner, "_danmu_link_async", True)):
+            threading.Thread(
+                target=_run,
+                name="SubtitleManualUploadDanmuLinkSkip",
+                daemon=True,
+            ).start()
+            return
+        _run()
 
     def submit_ai_for_entry(
         self,
@@ -294,6 +333,8 @@ class AutoTransferProcessor:
         base = {"strategy": strategy, "target": target.get("label")}
 
         if self._collaborators.auto_target_has_chinese_subtitle(entry, target):
+            # 已有中文字幕 → 跳过字幕下载；弹幕与字幕相互独立，仍需触发弹幕联动
+            self._trigger_danmu_link_for_entry(entry)
             return {**base, "status": "skipped", "reason": "目标已有中文字幕"}
         if target.get("has_subtitle"):
             self._logger.info(
